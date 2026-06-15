@@ -10,13 +10,13 @@ const transactionSchema = z.object({
   coinSymbol: z.string().min(1).max(20).toUpperCase(),
   coinName: z.string().optional(),
   type: z.enum(["BUY", "SELL"]),
-  amount: z.number().positive(),
-  price: z.number().positive(),
-  totalValue: z.number().positive(),
+  amount: z.number().nonnegative(),
+  price: z.number().nonnegative(),
+  totalValue: z.number().nonnegative(),
   currency: z.enum(["THB", "USDT", "USD"]),
   exchange: z.enum(["bitkub", "binanceth", "binance"]),
   txDate: z.string().datetime(),
-  slipImageUrl: z.string().url().optional().nullable(),
+  slipImageUrl: z.string().optional().nullable(),
 });
 
 export async function GET(request: NextRequest) {

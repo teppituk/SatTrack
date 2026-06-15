@@ -12,6 +12,8 @@ model User {
   email         String        @unique
   password      String?
   name          String?
+  role          String        @default("CUSTOMER")
+  isActive      Boolean       @default(true)
   plan          String        @default("free")
   planExpiresAt DateTime?
   createdAt     DateTime      @default(now())

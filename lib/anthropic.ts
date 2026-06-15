@@ -19,43 +19,52 @@ export interface ParsedSlipData {
   rawText?: string;
 }
 
-const SLIP_PARSE_PROMPT = `You are an expert at reading cryptocurrency trading slips from Thai exchanges.
-Analyze this trading slip image and extract the transaction details.
+const SLIP_PARSE_PROMPT = `You are an expert at reading cryptocurrency trading slips from Thai exchanges (Bitkub, Binance TH, Binance).
 
-Extract the following information:
-1. Exchange: Identify if this is from Bitkub, Binance TH (Thailand), or Binance international
-2. Transaction type: BUY or SELL
-3. Cryptocurrency symbol (e.g., BTC, ETH, BNB, etc.)
-4. Amount of cryptocurrency traded
-5. Price per unit (in THB or USDT)
-6. Total transaction value
-7. Currency (THB or USDT)
-8. Transaction date and time
-9. Transaction ID (if visible)
-10. Fee (if visible)
+## Bitkub slip field mappings (Thai → JSON field):
+- "ข้อมูลการซื้อเหรียญ" or "ข้อมูลการขายเหรียญ" → header indicating BUY or SELL
+- The large number with "+" prefix (e.g. "+0.00007581") → amount of crypto received/sold
+- "เหรียญ" → coinSymbol (e.g. BTC, ETH, KUB)
+- "ประเภทรายการ: ซื้อเหรียญ" → type: "BUY"
+- "ประเภทรายการ: ขายเหรียญ" → type: "SELL"
+- "ราคาที่จับคู่" → price per unit (remove commas, extract number only, e.g. "2,140,348.34 THB/BTC" → 2140348.34)
+- "มูลค่าที่จับคู่" → totalValue (e.g. "162.67 THB" → 162.67)
+- "วันที่จับคู่" → txDate (format: "15/06/2026 - 10:25:45" → "2026-06-15T10:25:45+07:00")
+- "Internal TxID" → txId
+- "ค่าธรรมเนียมการเทรด" → fee
+- Currency is always THB for Bitkub
 
-For Bitkub slips: prices are usually in THB
-For Binance TH slips: prices may be in THB or USDT
-For Binance international: prices are usually in USDT
+## Binance TH field mappings:
+- Look for "Binance TH" branding
+- Fields may be in Thai or English
+- Currency may be THB or USDT
 
-Respond with a JSON object in this exact format:
+## Binance international field mappings:
+- English language interface
+- Currency usually USDT or USD
+
+## Instructions:
+1. Read ALL text in the image carefully
+2. Remove commas from numbers (2,140,348.34 → 2140348.34)
+3. For amount: use the crypto amount (NOT the THB value), remove "+" prefix
+4. For txDate: convert to ISO 8601 format with Thai timezone (+07:00)
+5. confidence: 0.95 if all fields found clearly, 0.7 if some fields uncertain
+
+Respond with ONLY a valid JSON object, no explanation:
 {
-  "exchange": "bitkub" | "binanceth" | "binance" | "unknown",
-  "type": "BUY" | "SELL",
+  "exchange": "bitkub",
+  "type": "BUY",
   "coinSymbol": "BTC",
-  "amount": 0.001,
-  "price": 2000000,
-  "totalValue": 2000,
-  "currency": "THB" | "USDT" | "USD",
-  "txDate": "2024-01-15T10:30:00Z",
-  "txId": "optional-transaction-id",
-  "fee": 10,
+  "amount": 0.00007581,
+  "price": 2140348.34,
+  "totalValue": 162.67,
+  "currency": "THB",
+  "txDate": "2026-06-15T10:25:45+07:00",
+  "txId": "6a2f70b94da1c6b22844a164m8a2qe",
+  "fee": 0.41,
   "confidence": 0.95,
-  "rawText": "key text you found in the image"
-}
-
-If you cannot determine a value with confidence, use null for that field.
-The confidence score should reflect how certain you are about the extracted data (0=not confident, 1=very confident).`;
+  "rawText": "key fields found"
+}`;
 
 export async function parseSlipImage(
   imageBase64: string,

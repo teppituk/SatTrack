@@ -95,9 +95,15 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
           setState("review");
           return;
         }
+
+        // Show specific error for missing API key
+        const errBody = await ocrRes.json().catch(() => ({}));
+        if (errBody?.error === "NO_API_KEY") {
+          setError("⚠️ OCR ไม่พร้อมใช้งาน: กรุณาตั้งค่า ANTHROPIC_API_KEY ใน .env.local แล้ว restart server");
+        }
       }
 
-      // PDF or OCR failed - show empty form
+      // PDF or OCR unavailable — show manual form pre-filled with defaults
       setFormData({
         exchange: "bitkub",
         type: "BUY",
@@ -131,6 +137,13 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
 
   const handleSave = async () => {
     if (!formData) return;
+
+    // Validate required fields before saving
+    if (!formData.coinSymbol.trim()) {
+      setError("กรุณาระบุ Coin Symbol เช่น BTC, ETH, KUB");
+      return;
+    }
+
     setState("saving");
     setError("");
 
@@ -140,6 +153,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          coinSymbol: formData.coinSymbol.trim().toUpperCase(),
           slipImageUrl: imageUrl || null,
         }),
       });
@@ -305,14 +319,21 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Coin Symbol</label>
+              <label className="block text-xs text-gray-400 mb-1">
+                Coin Symbol <span className="text-red-400">*</span>
+              </label>
               <input
                 type="text"
                 value={formData.coinSymbol}
                 onChange={(e) => updateForm("coinSymbol", e.target.value.toUpperCase())}
-                placeholder="BTC"
-                className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                placeholder="เช่น BTC, ETH, KUB"
+                className={`w-full bg-gray-800 border text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase ${
+                  !formData.coinSymbol ? "border-red-600" : "border-gray-700"
+                }`}
               />
+              {!formData.coinSymbol && (
+                <p className="text-xs text-red-400 mt-1">จำเป็นต้องระบุ</p>
+              )}
             </div>
 
             <div>
@@ -389,7 +410,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
           <div className="flex gap-3">
             <button
               onClick={handleSave}
-              disabled={state === "saving" || !formData.coinSymbol || !formData.amount}
+              disabled={state === "saving"}
               className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
             >
               {state === "saving" ? (

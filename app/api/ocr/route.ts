@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { parseSlipImage, parseSlipFromUrl } from "@/lib/anthropic";
+import { parseSlipImage } from "@/lib/anthropic";
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -9,60 +9,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      { error: "NO_API_KEY", message: "ANTHROPIC_API_KEY ยังไม่ได้ตั้งค่าใน .env.local" },
+      { status: 503 }
+    );
+  }
+
   try {
     const contentType = request.headers.get("content-type") || "";
 
-    let parsedData;
-
-    if (contentType.includes("multipart/form-data")) {
-      // Handle direct file upload for immediate OCR (no queue)
-      const formData = await request.formData();
-      const file = formData.get("file") as File | null;
-
-      if (!file) {
-        return NextResponse.json({ error: "No file provided" }, { status: 400 });
-      }
-
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-      if (!allowedTypes.includes(file.type)) {
-        return NextResponse.json(
-          { error: "Only image files can be processed for OCR directly. PDF files are queued for processing." },
-          { status: 400 }
-        );
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString("base64");
-      const mediaType = file.type as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-
-      parsedData = await parseSlipImage(base64, mediaType);
-    } else {
-      // Handle URL-based OCR
-      const body = await request.json();
-      const { imageUrl } = body;
-
-      if (!imageUrl) {
-        return NextResponse.json(
-          { error: "imageUrl is required" },
-          { status: 400 }
-        );
-      }
-
-      parsedData = await parseSlipFromUrl(imageUrl);
+    if (!contentType.includes("multipart/form-data")) {
+      return NextResponse.json({ error: "Expected multipart/form-data" }, { status: 400 });
     }
+
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
+
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: "PDF ไม่รองรับ OCR โดยตรง กรุณากรอกข้อมูลด้วยตนเอง" },
+        { status: 400 }
+      );
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const mediaType = file.type as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+
+    const parsedData = await parseSlipImage(base64, mediaType);
 
     return NextResponse.json({ data: parsedData });
   } catch (error) {
     console.error("OCR error:", error);
-    if (error instanceof Error && error.message.includes("Could not extract JSON")) {
-      return NextResponse.json(
-        { error: "Could not read slip data. Please enter manually." },
-        { status: 422 }
-      );
-    }
-    return NextResponse.json(
-      { error: "OCR processing failed" },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : "OCR processing failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

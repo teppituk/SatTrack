@@ -17,6 +17,7 @@ import {
   X,
   ChevronRight,
   User,
+  Shield,
 } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -115,6 +116,16 @@ export function Nav() {
               </p>
             </div>
           </div>
+          {session?.user?.role === "ADMIN" && (
+            <Link
+              href="/admin"
+              onClick={() => setIsMobileOpen(false)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-purple-400 hover:text-purple-300 hover:bg-purple-950/30 transition-all mb-1"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="text-sm font-medium">Admin Panel</span>
+            </Link>
+          )}
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-950/30 transition-all"

@@ -51,6 +51,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
+          isActive: user.isActive,
         };
       },
     }),
@@ -59,12 +61,27 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role ?? "CUSTOMER";
+        token.isActive = user.isActive ?? true;
+      }
+      // Always fetch fresh role/isActive from DB on each JWT refresh
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, isActive: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.isActive = dbUser.isActive;
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.isActive = token.isActive as boolean;
       }
       return session;
     },
