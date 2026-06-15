@@ -18,20 +18,23 @@ import {
   ChevronRight,
   User,
 } from "lucide-react";
-
-const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/upload", icon: Upload, label: "Upload Slip" },
-  { href: "/chart", icon: BarChart2, label: "Chart" },
-  { href: "/settings/share", icon: Share2, label: "Share" },
-  { href: "/settings/subscription", icon: Zap, label: "Subscription" },
-  { href: "/settings", icon: Settings, label: "Settings" },
-];
+import { useLocale } from "@/contexts/locale-context";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export function Nav() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { t } = useLocale();
+
+  const navItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard") },
+    { href: "/upload", icon: Upload, label: t("nav.upload") },
+    { href: "/chart", icon: BarChart2, label: t("nav.chart") },
+    { href: "/settings/share", icon: Share2, label: t("nav.share") },
+    { href: "/settings/subscription", icon: Zap, label: t("nav.subscription") },
+    { href: "/settings", icon: Settings, label: t("nav.settings") },
+  ];
 
   return (
     <>
@@ -117,8 +120,13 @@ export function Nav() {
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-950/30 transition-all"
           >
             <LogOut className="h-4 w-4" />
-            <span className="text-sm">Sign Out</span>
+            <span className="text-sm">{t("nav.signOut")}</span>
           </button>
+
+          {/* Language Switcher */}
+          <div className="mt-3 flex justify-center">
+            <LanguageSwitcher />
+          </div>
         </div>
       </aside>
     </>

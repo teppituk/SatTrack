@@ -5,18 +5,21 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp, Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
+import { useLocale } from "@/contexts/locale-context";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const errorParam = searchParams.get("error");
+  const { t } = useLocale();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(
-    errorParam === "CredentialsSignin" ? "Invalid email or password" : ""
+    errorParam === "CredentialsSignin" ? t("auth.invalidCredentials") : ""
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,13 +36,13 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        setError(t("auth.invalidCredentials"));
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch {
-      setError("An unexpected error occurred");
+      setError(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -51,6 +54,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      {/* Language switcher — top right */}
+      <div className="fixed top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -58,7 +66,7 @@ export default function LoginPage() {
             <TrendingUp className="h-8 w-8 text-blue-500" />
             <span className="text-2xl font-bold text-white">CryptoSlip</span>
           </div>
-          <p className="text-gray-400">Sign in to your account</p>
+          <p className="text-gray-400">{t("auth.signInToAccount")}</p>
         </div>
 
         {/* Card */}
@@ -86,7 +94,7 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {t("auth.googleLogin")}
           </button>
 
           <div className="relative mb-6">
@@ -95,7 +103,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-gray-900 text-gray-500">
-                or sign in with email
+                {t("auth.orContinueWith")}
               </span>
             </div>
           </div>
@@ -112,7 +120,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Email
+                {t("auth.email")}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -129,7 +137,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Password
+                {t("auth.password")}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -149,7 +157,7 @@ export default function LoginPage() {
                 href="/reset-password"
                 className="text-sm text-blue-400 hover:text-blue-300"
               >
-                Forgot password?
+                {t("auth.forgotPassword")}
               </Link>
             </div>
 
@@ -161,18 +169,18 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in...
+                  {t("auth.signingIn")}
                 </>
               ) : (
-                "Sign In"
+                t("auth.loginButton")
               )}
             </button>
           </form>
 
           <p className="text-center text-gray-500 text-sm mt-6">
-            Don&apos;t have an account?{" "}
+            {t("auth.noAccount")}{" "}
             <Link href="/register" className="text-blue-400 hover:text-blue-300">
-              Create one
+              {t("auth.createOne")}
             </Link>
           </p>
         </div>

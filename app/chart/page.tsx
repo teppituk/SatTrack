@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/nav";
 import { BuySellChart } from "@/components/buy-sell-chart";
 import { BarChart2, Filter } from "lucide-react";
+import { useLocale } from "@/contexts/locale-context";
 
 interface Transaction {
   id: string;
@@ -23,6 +24,7 @@ interface Transaction {
 export default function ChartPage() {
   const { status } = useSession();
   const router = useRouter();
+  const { t } = useLocale();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCoin, setSelectedCoin] = useState<string>("ALL");
@@ -60,11 +62,11 @@ export default function ChartPage() {
   ).sort();
 
   // Filter transactions
-  const filtered = transactions.filter((t) => {
-    if (selectedCoin !== "ALL" && t.coin.symbol !== selectedCoin) return false;
-    if (selectedExchange !== "ALL" && t.exchange !== selectedExchange) return false;
-    if (fromDate && new Date(t.txDate) < new Date(fromDate)) return false;
-    if (toDate && new Date(t.txDate) > new Date(toDate + "T23:59:59")) return false;
+  const filtered = transactions.filter((tx) => {
+    if (selectedCoin !== "ALL" && tx.coin.symbol !== selectedCoin) return false;
+    if (selectedExchange !== "ALL" && tx.exchange !== selectedExchange) return false;
+    if (fromDate && new Date(tx.txDate) < new Date(fromDate)) return false;
+    if (toDate && new Date(tx.txDate) > new Date(toDate + "T23:59:59")) return false;
     return true;
   });
 
@@ -73,9 +75,9 @@ export default function ChartPage() {
     : selectedCoin;
 
   const chartTransactions = filtered.filter(
-    (t) => selectedCoin === "ALL"
-      ? t.coin.symbol === displayCoin
-      : t.coin.symbol === selectedCoin
+    (tx) => selectedCoin === "ALL"
+      ? tx.coin.symbol === displayCoin
+      : tx.coin.symbol === selectedCoin
   );
 
   return (
@@ -87,10 +89,8 @@ export default function ChartPage() {
             <BarChart2 className="h-5 w-5 text-purple-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Buy/Sell Chart</h1>
-            <p className="text-gray-400 text-sm">
-              Visualize your trades on the price timeline
-            </p>
+            <h1 className="text-2xl font-bold text-white">{t("chart.title")}</h1>
+            <p className="text-gray-400 text-sm">{t("chart.subtitle")}</p>
           </div>
         </div>
 
@@ -98,17 +98,17 @@ export default function ChartPage() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Filter className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-400 font-medium">Filters</span>
+            <span className="text-sm text-gray-400 font-medium">{t("chart.filters")}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Coin</label>
+              <label className="block text-xs text-gray-500 mb-1">{t("chart.filterCoin")}</label>
               <select
                 value={selectedCoin}
                 onChange={(e) => setSelectedCoin(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="ALL">All Coins</option>
+                <option value="ALL">{t("chart.allCoins")}</option>
                 {coins.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -116,13 +116,13 @@ export default function ChartPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Exchange</label>
+              <label className="block text-xs text-gray-500 mb-1">{t("chart.filterExchange")}</label>
               <select
                 value={selectedExchange}
                 onChange={(e) => setSelectedExchange(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="ALL">All Exchanges</option>
+                <option value="ALL">{t("chart.allExchanges")}</option>
                 <option value="bitkub">Bitkub</option>
                 <option value="binanceth">Binance TH</option>
                 <option value="binance">Binance</option>
@@ -130,7 +130,7 @@ export default function ChartPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">From Date</label>
+              <label className="block text-xs text-gray-500 mb-1">{t("chart.dateFrom")}</label>
               <input
                 type="date"
                 value={fromDate}
@@ -140,7 +140,7 @@ export default function ChartPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">To Date</label>
+              <label className="block text-xs text-gray-500 mb-1">{t("chart.dateTo")}</label>
               <input
                 type="date"
                 value={toDate}
@@ -156,21 +156,24 @@ export default function ChartPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-white">
-                {displayCoin} Price Chart
+                {displayCoin} {t("chart.priceChart")}
               </h2>
               <p className="text-sm text-gray-500">
-                {chartTransactions.length} transaction
-                {chartTransactions.length !== 1 ? "s" : ""} shown
+                {chartTransactions.length}{" "}
+                {chartTransactions.length !== 1
+                  ? t("chart.transactionsShownPlural")
+                  : t("chart.transactionsShown")}{" "}
+                {t("chart.shown")}
               </p>
             </div>
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                <span className="text-gray-400">Buy</span>
+                <span className="text-gray-400">{t("chart.buy")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                <span className="text-gray-400">Sell</span>
+                <span className="text-gray-400">{t("chart.sell")}</span>
               </div>
             </div>
           </div>
@@ -191,19 +194,19 @@ export default function ChartPage() {
         {filtered.length > 0 && (
           <div className="mt-6 bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h3 className="text-base font-semibold text-white mb-4">
-              Filtered Transactions ({filtered.length})
+              {t("chart.filteredTransactions")} ({filtered.length})
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-800 text-gray-400">
-                    <th className="text-left py-2 px-3">Date</th>
-                    <th className="text-left py-2 px-3">Coin</th>
-                    <th className="text-left py-2 px-3">Type</th>
-                    <th className="text-right py-2 px-3">Amount</th>
-                    <th className="text-right py-2 px-3">Price</th>
-                    <th className="text-right py-2 px-3">Total</th>
-                    <th className="text-left py-2 px-3">Exchange</th>
+                    <th className="text-left py-2 px-3">{t("chart.date")}</th>
+                    <th className="text-left py-2 px-3">{t("chart.coin")}</th>
+                    <th className="text-left py-2 px-3">{t("chart.type")}</th>
+                    <th className="text-right py-2 px-3">{t("chart.amount")}</th>
+                    <th className="text-right py-2 px-3">{t("chart.price")}</th>
+                    <th className="text-right py-2 px-3">{t("chart.total")}</th>
+                    <th className="text-left py-2 px-3">{t("chart.exchange")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -242,7 +245,7 @@ export default function ChartPage() {
               </table>
               {filtered.length > 20 && (
                 <p className="text-center text-gray-600 text-xs mt-3">
-                  Showing 20 of {filtered.length} transactions
+                  {t("chart.showingOf")} {filtered.length} {t("chart.transactions")}
                 </p>
               )}
             </div>

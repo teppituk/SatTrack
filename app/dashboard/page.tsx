@@ -16,6 +16,7 @@ import { AppShell } from "@/components/nav";
 import { PortfolioChart } from "@/components/portfolio-chart";
 import { TransactionTable } from "@/components/transaction-table";
 import Link from "next/link";
+import { useLocale } from "@/contexts/locale-context";
 
 interface Holding {
   symbol: string;
@@ -96,6 +97,7 @@ function StatCard({
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t } = useLocale();
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -170,9 +172,9 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white">Portfolio Dashboard</h1>
+            <h1 className="text-2xl font-bold text-white">{t("dashboard.title")}</h1>
             <p className="text-gray-400 text-sm mt-1">
-              Welcome back, {session?.user?.name || session?.user?.email}
+              {t("dashboard.welcomeBack")}, {session?.user?.name || session?.user?.email}
             </p>
           </div>
           <button
@@ -181,24 +183,24 @@ export default function DashboardPage() {
             className="flex items-center gap-2 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-xl transition-all text-sm"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            Refresh Prices
+            {t("dashboard.refreshPrices")}
           </button>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
-            title="Total Portfolio Value"
+            title={t("dashboard.totalValue")}
             value={formatCurrency(summary?.totalPortfolioValue || 0)}
             icon={<DollarSign className="h-5 w-5" />}
           />
           <StatCard
-            title="Total Invested"
+            title={t("dashboard.totalInvested")}
             value={formatCurrency(summary?.totalInvested || 0)}
             icon={<Coins className="h-5 w-5" />}
           />
           <StatCard
-            title="Unrealized P&L"
+            title={t("dashboard.unrealizedPnl")}
             value={formatCurrency(summary?.totalUnrealizedPnl || 0)}
             change={formatCurrency(Math.abs(summary?.totalUnrealizedPnl || 0))}
             changePercent={
@@ -216,7 +218,7 @@ export default function DashboardPage() {
             }
           />
           <StatCard
-            title="Realized P&L"
+            title={t("dashboard.realizedPnl")}
             value={formatCurrency(summary?.totalRealizedPnl || 0)}
             positive={(summary?.totalRealizedPnl || 0) >= 0}
             icon={
@@ -233,15 +235,15 @@ export default function DashboardPage() {
         <div className="grid lg:grid-cols-3 gap-6 mb-8">
           {/* Allocation Chart */}
           <div className="lg:col-span-1 bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Allocation</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t("dashboard.allocation")}</h2>
             {holdings.length > 0 ? (
               <PortfolioChart data={holdings} />
             ) : (
               <div className="flex flex-col items-center justify-center h-48 text-gray-600">
                 <Coins className="h-10 w-10 mb-2 opacity-30" />
-                <p className="text-sm">No holdings yet</p>
+                <p className="text-sm">{t("dashboard.noHoldings")}</p>
                 <Link href="/upload" className="text-blue-400 text-sm mt-2 hover:underline">
-                  Upload a slip
+                  {t("dashboard.uploadSlip")}
                 </Link>
               </div>
             )}
@@ -249,18 +251,18 @@ export default function DashboardPage() {
 
           {/* Holdings Table */}
           <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Holdings</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t("dashboard.holdings")}</h2>
             {holdings.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-800 text-gray-400">
-                      <th className="text-left py-2 px-2">Coin</th>
-                      <th className="text-right py-2 px-2">Amount</th>
-                      <th className="text-right py-2 px-2">Avg. Price</th>
-                      <th className="text-right py-2 px-2">Value</th>
-                      <th className="text-right py-2 px-2">P&L</th>
-                      <th className="text-right py-2 px-2">Alloc.</th>
+                      <th className="text-left py-2 px-2">{t("dashboard.coin")}</th>
+                      <th className="text-right py-2 px-2">{t("dashboard.amount")}</th>
+                      <th className="text-right py-2 px-2">{t("dashboard.avgPrice")}</th>
+                      <th className="text-right py-2 px-2">{t("dashboard.value")}</th>
+                      <th className="text-right py-2 px-2">{t("dashboard.pnl")}</th>
+                      <th className="text-right py-2 px-2">{t("dashboard.alloc")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800">
@@ -310,7 +312,7 @@ export default function DashboardPage() {
             ) : (
               <div className="flex flex-col items-center justify-center h-48 text-gray-600">
                 <TrendingUp className="h-10 w-10 mb-2 opacity-30" />
-                <p className="text-sm">No holdings to display</p>
+                <p className="text-sm">{t("dashboard.noHoldingsDesc")}</p>
               </div>
             )}
           </div>
@@ -319,12 +321,12 @@ export default function DashboardPage() {
         {/* Recent Transactions */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Recent Transactions</h2>
+            <h2 className="text-lg font-semibold text-white">{t("dashboard.recentTransactions")}</h2>
             <Link
               href="/upload"
               className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
             >
-              Upload Slip
+              {t("dashboard.uploadSlipLink")}
               <ArrowUpRight className="h-3 w-3" />
             </Link>
           </div>
@@ -334,9 +336,9 @@ export default function DashboardPage() {
           />
           {transactions.length >= 10 && (
             <p className="text-center text-gray-600 text-sm mt-4">
-              Showing last 10 transactions.{" "}
+              {t("dashboard.showingLast")}{" "}
               <Link href="/chart" className="text-blue-400 hover:underline">
-                View all in chart
+                {t("dashboard.viewAllChart")}
               </Link>
             </p>
           )}

@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/nav";
 import { SlipUploadForm } from "@/components/slip-upload-form";
 import { Upload, Info } from "lucide-react";
+import { useLocale } from "@/contexts/locale-context";
 
 export default function UploadPage() {
   const { status } = useSession();
   const router = useRouter();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -27,6 +29,21 @@ export default function UploadPage() {
     );
   }
 
+  const tips = [
+    {
+      title: t("upload.tipClearImage"),
+      desc: t("upload.tipClearImageDesc"),
+    },
+    {
+      title: t("upload.tipFullSlip"),
+      desc: t("upload.tipFullSlipDesc"),
+    },
+    {
+      title: t("upload.tipReviewCarefully"),
+      desc: t("upload.tipReviewCarefullyDesc"),
+    },
+  ];
+
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto">
@@ -36,24 +53,17 @@ export default function UploadPage() {
             <div className="h-10 w-10 bg-blue-600/20 rounded-xl flex items-center justify-center">
               <Upload className="h-5 w-5 text-blue-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white">Upload Slip</h1>
+            <h1 className="text-2xl font-bold text-white">{t("upload.title")}</h1>
           </div>
-          <p className="text-gray-400">
-            Upload your trading slip and let AI extract the transaction details
-            automatically.
-          </p>
+          <p className="text-gray-400">{t("upload.subtitle")}</p>
         </div>
 
         {/* Info Banner */}
         <div className="flex items-start gap-3 bg-blue-950/30 border border-blue-800/50 rounded-xl p-4 mb-6">
           <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-300">
-            <p className="font-medium text-white mb-1">Supported Exchanges</p>
-            <p className="text-gray-400">
-              Bitkub, Binance TH (Thailand), and Binance International. Supports
-              JPG, PNG, WebP and PDF files up to 10MB. AI will read and
-              pre-fill the form — you can edit before saving.
-            </p>
+            <p className="font-medium text-white mb-1">{t("upload.supportedExchanges")}</p>
+            <p className="text-gray-400">{t("upload.supportedDesc")}</p>
           </div>
         </div>
 
@@ -68,20 +78,7 @@ export default function UploadPage() {
 
         {/* Tips */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            {
-              title: "Clear Image",
-              desc: "Take a clear, well-lit photo of the slip without shadows or blur",
-            },
-            {
-              title: "Full Slip",
-              desc: "Capture the entire slip including exchange logo and all transaction details",
-            },
-            {
-              title: "Review Carefully",
-              desc: "Always verify AI-extracted data before confirming, especially amounts",
-            },
-          ].map((tip) => (
+          {tips.map((tip) => (
             <div
               key={tip.title}
               className="bg-gray-900/50 border border-gray-800 rounded-xl p-4"
