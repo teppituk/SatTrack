@@ -16,6 +16,7 @@ model User {
   isActive      Boolean       @default(true)
   plan          String        @default("free")
   planExpiresAt DateTime?
+  lastSeenAt    DateTime?
   createdAt     DateTime      @default(now())
   transactions  Transaction[]
   shareLinks    ShareLink[]
@@ -24,10 +25,20 @@ model User {
   sessions      Session[]
 }
 
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  label       String
+  permissions Json
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
 model Coin {
   id           String        @id @default(cuid())
   symbol       String        @unique
   name         String
+  assetType    String        @default("CRYPTO") // CRYPTO | STOCK
   coingeckoId  String?
   transactions Transaction[]
 }
@@ -40,8 +51,8 @@ model Transaction {
   amount       Float
   price        Float
   totalValue   Float
-  currency     String   // THB or USDT
-  exchange     String   // bitkub, binanceth, binance
+  currency     String   // THB, USDT, USD
+  exchange     String   // bitkub, binanceth, binance, set, nyse, nasdaq, ...
   txDate       DateTime
   slipImageUrl String?
   createdAt    DateTime @default(now())

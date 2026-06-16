@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Shield,
   User,
+  KeyRound,
 } from "lucide-react";
 
 export function AdminNav() {
@@ -18,6 +19,7 @@ export function AdminNav() {
   const navItems = [
     { href: "/admin", icon: LayoutDashboard, label: "Overview" },
     { href: "/admin/users", icon: Users, label: "User Management" },
+    { href: "/admin/roles", icon: KeyRound, label: "Role Management" },
   ];
 
   return (

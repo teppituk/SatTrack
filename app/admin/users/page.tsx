@@ -11,28 +11,50 @@ interface AdminUser {
   role: string;
   isActive: boolean;
   plan: string;
+  lastSeenAt: string | null;
   createdAt: string;
   _count: { transactions: number };
 }
 
-type RoleFilter = "ALL" | "ADMIN" | "CUSTOMER";
+interface Role {
+  id: string;
+  name: string;
+  label: string;
+  isSystem: boolean;
+}
+
+function OnlineBadge({ lastSeenAt }: { lastSeenAt: string | null }) {
+  const isOnline = lastSeenAt != null && Date.now() - new Date(lastSeenAt).getTime() < 5 * 60 * 1000;
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? "bg-green-400" : "bg-gray-600"}`} />
+      <span className={`text-xs ${isOnline ? "text-green-400" : "text-gray-500"}`}>
+        {isOnline ? "Online" : "Offline"}
+      </span>
+    </div>
+  );
+}
+
 type StatusFilter = "ALL" | "ACTIVE" | "INACTIVE";
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
+  const [roleFilter, setRoleFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const params = new URLSearchParams({
         page: String(page),
@@ -42,12 +64,16 @@ export default function AdminUsersPage() {
         ...(statusFilter !== "ALL" ? { status: statusFilter } : {}),
       });
       const res = await fetch(`/api/admin/users?${params}`);
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setUsers(data.users);
         setTotal(data.total);
         setTotalPages(data.totalPages);
+      } else {
+        setFetchError(data.error ?? `Error ${res.status}`);
       }
+    } catch (e) {
+      setFetchError(e instanceof Error ? e.message : "Network error");
     } finally {
       setLoading(false);
     }
@@ -56,6 +82,13 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    fetch("/api/admin/roles")
+      .then((r) => r.json())
+      .then((d) => { if (d.roles) setRoles(d.roles); })
+      .catch(() => {});
+  }, []);
 
   async function updateUser(id: string, data: { role?: string; isActive?: boolean }) {
     setUpdating(id);
@@ -125,12 +158,13 @@ export default function AdminUsersPage() {
         <div className="flex gap-2">
           <select
             value={roleFilter}
-            onChange={(e) => { setRoleFilter(e.target.value as RoleFilter); setPage(1); }}
+            onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
             className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
           >
             <option value="ALL">All Roles</option>
-            <option value="ADMIN">Admin</option>
-            <option value="CUSTOMER">Customer</option>
+            {roles.map((r) => (
+              <option key={r.name} value={r.name}>{r.label}</option>
+            ))}
           </select>
 
           <select
@@ -145,6 +179,12 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
+      {fetchError && (
+        <div className="bg-red-900/30 border border-red-700 rounded-lg px-4 py-3 text-sm text-red-400">
+          ⚠️ โหลดข้อมูลไม่สำเร็จ: {fetchError}
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
@@ -153,6 +193,7 @@ export default function AdminUsersPage() {
               <tr className="text-gray-500 text-xs border-b border-gray-800">
                 <th className="text-left px-5 py-3">Email</th>
                 <th className="text-left px-5 py-3">Name</th>
+                <th className="text-left px-5 py-3">Online</th>
                 <th className="text-left px-5 py-3">Role</th>
                 <th className="text-left px-5 py-3">Status</th>
                 <th className="text-left px-5 py-3">Plan</th>
@@ -164,13 +205,13 @@ export default function AdminUsersPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={9} className="px-5 py-10 text-center text-gray-500">
                     Loading...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={9} className="px-5 py-10 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>
@@ -189,14 +230,22 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-5 py-3 text-gray-300">{user.name ?? "—"}</td>
                       <td className="px-5 py-3">
+                        <OnlineBadge lastSeenAt={user.lastSeenAt} />
+                      </td>
+                      <td className="px-5 py-3">
                         <select
                           value={user.role}
                           disabled={isUpdating || isSelf}
                           onChange={(e) => updateUser(user.id, { role: e.target.value })}
                           className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <option value="CUSTOMER">CUSTOMER</option>
-                          <option value="ADMIN">ADMIN</option>
+                          {roles.length > 0 ? (
+                            roles.map((r) => (
+                              <option key={r.name} value={r.name}>{r.label}</option>
+                            ))
+                          ) : (
+                            <option value={user.role}>{user.role}</option>
+                          )}
                         </select>
                       </td>
                       <td className="px-5 py-3">

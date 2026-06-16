@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
         role: true,
         isActive: true,
         plan: true,
+        lastSeenAt: true,
         createdAt: true,
         _count: {
           select: { transactions: true },

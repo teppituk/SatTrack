@@ -1,5 +1,14 @@
 import "next-auth";
 
+export interface RolePermissions {
+  dashboard: boolean;
+  upload: boolean;
+  chart: boolean;
+  share: boolean;
+  subscription: boolean;
+  settings: boolean;
+}
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -9,6 +18,7 @@ declare module "next-auth" {
       image?: string | null;
       role: string;
       isActive: boolean;
+      permissions: RolePermissions | null;
     };
   }
 
@@ -24,5 +34,6 @@ declare module "next-auth/jwt" {
     id: string;
     role: string;
     isActive: boolean;
+    permissions: RolePermissions | null;
   }
 }

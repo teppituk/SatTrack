@@ -14,21 +14,22 @@ export async function PATCH(
   }
 
   const { id } = params
+  const body = await req.json()
 
-  if (id === session.user.id) {
-    const body = await req.json()
-    if (body.isActive === false) {
-      return NextResponse.json(
-        { error: "Cannot deactivate your own account" },
-        { status: 400 }
-      )
-    }
+  if (id === session.user.id && body.isActive === false) {
+    return NextResponse.json(
+      { error: "Cannot deactivate your own account" },
+      { status: 400 }
+    )
   }
 
-  const body = await req.json()
   const data: { role?: string; isActive?: boolean } = {}
 
-  if (typeof body.role === "string" && ["ADMIN", "CUSTOMER"].includes(body.role)) {
+  if (typeof body.role === "string") {
+    const roleExists = await prisma.role.findUnique({ where: { name: body.role } })
+    if (!roleExists) {
+      return NextResponse.json({ error: `Role "${body.role}" not found` }, { status: 400 })
+    }
     data.role = body.role
   }
 

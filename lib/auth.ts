@@ -73,6 +73,11 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.role = dbUser.role;
           token.isActive = dbUser.isActive;
+          const roleRecord = await prisma.role.findUnique({
+            where: { name: dbUser.role },
+            select: { permissions: true },
+          });
+          token.permissions = (roleRecord?.permissions as import("@/types/next-auth").RolePermissions) ?? null;
         }
       }
       return token;
@@ -82,6 +87,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.isActive = token.isActive as boolean;
+        session.user.permissions = token.permissions;
       }
       return session;
     },

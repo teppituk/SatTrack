@@ -28,14 +28,23 @@ export function Nav() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { t } = useLocale();
 
-  const navItems = [
-    { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard") },
-    { href: "/upload", icon: Upload, label: t("nav.upload") },
-    { href: "/chart", icon: BarChart2, label: t("nav.chart") },
-    { href: "/settings/share", icon: Share2, label: t("nav.share") },
-    { href: "/settings/subscription", icon: Zap, label: t("nav.subscription") },
-    { href: "/settings", icon: Settings, label: t("nav.settings") },
+  const permissions = session?.user?.permissions;
+  const isAdmin = session?.user?.role === "ADMIN";
+
+  const allNavItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard"), key: "dashboard" },
+    { href: "/upload", icon: Upload, label: t("nav.upload"), key: "upload" },
+    { href: "/chart", icon: BarChart2, label: t("nav.chart"), key: "chart" },
+    { href: "/settings/share", icon: Share2, label: t("nav.share"), key: "share" },
+    { href: "/settings/subscription", icon: Zap, label: t("nav.subscription"), key: "subscription" },
+    { href: "/settings", icon: Settings, label: t("nav.settings"), key: "settings" },
   ];
+
+  const navItems = allNavItems.filter((item) => {
+    if (isAdmin) return true;
+    if (!permissions) return true;
+    return permissions[item.key as keyof typeof permissions] !== false;
+  });
 
   return (
     <>
