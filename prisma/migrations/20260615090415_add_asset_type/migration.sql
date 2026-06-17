@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Coin" ADD COLUMN     "assetType" TEXT NOT NULL DEFAULT 'CRYPTO';
