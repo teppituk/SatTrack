@@ -3,9 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-interface CoinHolding {
+interface AssetHolding {
   symbol: string;
   name: string;
+  assetType: string;
   coingeckoId: string | null;
   totalBought: number;
   totalSold: number;
@@ -17,58 +18,123 @@ interface CoinHolding {
   unrealizedPnl: number;
   unrealizedPnlPercent: number;
   allocation: number;
+  currency: string;
 }
 
-async function fetchCoinPrices(symbols: string[]): Promise<Record<string, number>> {
+// ─── USD/THB Rate ──────────────────────────────────────────────
+async function fetchUsdThbRate(): Promise<number> {
+  try {
+    const res = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=thb",
+      { next: { revalidate: 60 } }
+    );
+    if (res.ok) {
+      const d = await res.json();
+      return d?.tether?.thb ?? 35;
+    }
+  } catch { /* ignore */ }
+  return 35;
+}
+
+// ─── Yahoo Finance: ราคาหุ้น ───────────────────────────────────
+const SET_EXCHANGES = new Set(["set", "mai", "ktbst", "mbket", "kasikorn", "kgi", "tisco", "uob", "scbs"]);
+const US_EXCHANGES  = new Set(["nyse", "nasdaq"]);
+const GLOBAL_EXCHANGES = new Set(["hkex", "sgx"]);
+
+function getYahooSymbol(symbol: string, exchange: string): string | null {
+  const ex = exchange.toLowerCase();
+  if (SET_EXCHANGES.has(ex)) return `${symbol.toUpperCase()}.BK`;
+  if (US_EXCHANGES.has(ex))  return symbol.toUpperCase();
+  if (ex === "hkex")         return `${symbol}.HK`;
+  if (ex === "sgx")          return `${symbol}.SI`;
+  return null;
+}
+
+async function fetchStockPricesTHB(
+  stocks: Array<{ symbol: string; exchange: string }>,
+  usdThbRate: number
+): Promise<Record<string, number>> {
   const prices: Record<string, number> = {};
 
-  try {
-    // Map common symbols to CoinGecko IDs
-    const symbolToId: Record<string, string> = {
-      BTC: "bitcoin",
-      ETH: "ethereum",
-      BNB: "binancecoin",
-      SOL: "solana",
-      ADA: "cardano",
-      DOT: "polkadot",
-      MATIC: "matic-network",
-      LINK: "chainlink",
-      UNI: "uniswap",
-      AVAX: "avalanche-2",
-      XRP: "ripple",
-      LTC: "litecoin",
-      DOGE: "dogecoin",
-    };
+  await Promise.all(
+    stocks.map(async ({ symbol, exchange }) => {
+      const yahooSymbol = getYahooSymbol(symbol, exchange);
+      if (!yahooSymbol) return;
+      try {
+        const res = await fetch(
+          `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`,
+          {
+            headers: { "User-Agent": "Mozilla/5.0" },
+            next: { revalidate: 60 },
+          }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const meta = data?.chart?.result?.[0]?.meta;
+        if (!meta) return;
 
-    const coinGeckoIds = symbols
-      .map((s) => symbolToId[s.toUpperCase()])
-      .filter(Boolean);
+        const price: number = meta.regularMarketPrice ?? meta.previousClose ?? 0;
+        const quoteCurrency: string = (meta.currency ?? "THB").toUpperCase();
 
-    if (coinGeckoIds.length === 0) return prices;
-
-    const apiKey = process.env.COINGECKO_API_KEY;
-    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinGeckoIds.join(",")}&vs_currencies=thb,usd${apiKey ? `&x_cg_demo_api_key=${apiKey}` : ""}`;
-
-    const response = await fetch(url, {
-      next: { revalidate: 60 }, // cache for 60s
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      symbols.forEach((symbol) => {
-        const id = symbolToId[symbol.toUpperCase()];
-        if (id && data[id]) {
-          prices[symbol] = data[id].thb || 0;
+        // แปลงเป็น THB
+        if (quoteCurrency === "THB") {
+          prices[symbol] = price;
+        } else if (quoteCurrency === "USD") {
+          prices[symbol] = price * usdThbRate;
+        } else {
+          prices[symbol] = price; // ไม่รู้ currency ใช้ raw price
         }
+      } catch { /* ignore */ }
+    })
+  );
+
+  return prices;
+}
+
+// ─── CoinGecko: ราคา Crypto ───────────────────────────────────
+const CRYPTO_SYMBOL_TO_ID: Record<string, string> = {
+  BTC: "bitcoin", ETH: "ethereum", BNB: "binancecoin", SOL: "solana",
+  ADA: "cardano", DOT: "polkadot", MATIC: "matic-network", POL: "matic-network",
+  LINK: "chainlink", UNI: "uniswap", AVAX: "avalanche-2", XRP: "ripple",
+  LTC: "litecoin", DOGE: "dogecoin", SHIB: "shiba-inu", TRX: "tron",
+  TON: "the-open-network", SUI: "sui", PEPE: "pepe", KUB: "bitkub-coin",
+  NEAR: "near", OP: "optimism", ARB: "arbitrum", WLD: "worldcoin-wld",
+  ATOM: "cosmos", FIL: "filecoin", APT: "aptos", INJ: "injective-protocol",
+};
+const STABLECOINS = new Set(["USDT", "USDC", "BUSD", "DAI"]);
+
+async function fetchCryptoPricesTHB(symbols: string[], usdThbRate: number): Promise<Record<string, number>> {
+  const prices: Record<string, number> = {};
+
+  // Stablecoins
+  symbols.forEach((s) => {
+    if (STABLECOINS.has(s.toUpperCase())) prices[s] = usdThbRate;
+  });
+
+  const ids = symbols
+    .map((s) => CRYPTO_SYMBOL_TO_ID[s.toUpperCase()])
+    .filter(Boolean);
+  if (ids.length === 0) return prices;
+
+  try {
+    const apiKey = process.env.COINGECKO_API_KEY;
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(",")}&vs_currencies=thb${apiKey ? `&x_cg_demo_api_key=${apiKey}` : ""}`;
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    if (res.ok) {
+      const data = await res.json();
+      symbols.forEach((symbol) => {
+        const id = CRYPTO_SYMBOL_TO_ID[symbol.toUpperCase()];
+        if (id && data[id]?.thb) prices[symbol] = data[id].thb;
       });
     }
-  } catch (error) {
-    console.error("Price fetch error:", error);
+  } catch (e) {
+    console.error("CoinGecko error:", e);
   }
 
   return prices;
 }
 
+// ─── Main Handler ───────────────────────────────────────────────
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -85,13 +151,16 @@ export async function GET(request: NextRequest) {
       orderBy: { txDate: "asc" },
     });
 
-    // Group by coin and calculate holdings
+    // Group by symbol
     const holdingsMap = new Map<string, {
       symbol: string;
       name: string;
+      assetType: string;
       coingeckoId: string | null;
-      buyTransactions: Array<{ amount: number; price: number; totalValue: number }>;
-      sellTransactions: Array<{ amount: number; price: number; totalValue: number }>;
+      exchange: string;
+      txCurrency: string;
+      buyTx: Array<{ amount: number; price: number; totalValue: number }>;
+      sellTx: Array<{ amount: number; price: number; totalValue: number }>;
     }>();
 
     for (const tx of transactions) {
@@ -100,48 +169,70 @@ export async function GET(request: NextRequest) {
         holdingsMap.set(symbol, {
           symbol,
           name: tx.coin.name,
+          assetType: tx.coin.assetType,
           coingeckoId: tx.coin.coingeckoId,
-          buyTransactions: [],
-          sellTransactions: [],
+          exchange: tx.exchange,
+          txCurrency: tx.currency,
+          buyTx: [],
+          sellTx: [],
         });
       }
-      const holding = holdingsMap.get(symbol)!;
+      const h = holdingsMap.get(symbol)!;
       if (tx.type === "BUY") {
-        holding.buyTransactions.push({
-          amount: tx.amount,
-          price: tx.price,
-          totalValue: tx.totalValue,
-        });
+        h.buyTx.push({ amount: tx.amount, price: tx.price, totalValue: tx.totalValue });
       } else {
-        holding.sellTransactions.push({
-          amount: tx.amount,
-          price: tx.price,
-          totalValue: tx.totalValue,
-        });
+        h.sellTx.push({ amount: tx.amount, price: tx.price, totalValue: tx.totalValue });
       }
     }
 
-    // Fetch current prices
-    const symbols = Array.from(holdingsMap.keys());
-    const prices = await fetchCoinPrices(symbols);
+    // Split crypto vs stocks
+    const cryptoSymbols: string[] = [];
+    const stockEntries: Array<{ symbol: string; exchange: string }> = [];
 
-    const holdings: CoinHolding[] = [];
+    holdingsMap.forEach((h) => {
+      if (h.assetType === "STOCK") {
+        stockEntries.push({ symbol: h.symbol, exchange: h.exchange });
+      } else {
+        cryptoSymbols.push(h.symbol);
+      }
+    });
+
+    // Fetch USD/THB once, share across both fetchers
+    const usdThbRate = await fetchUsdThbRate();
+
+    const [cryptoPrices, stockPrices] = await Promise.all([
+      cryptoSymbols.length > 0 ? fetchCryptoPricesTHB(cryptoSymbols, usdThbRate) : Promise.resolve({}),
+      stockEntries.length > 0  ? fetchStockPricesTHB(stockEntries, usdThbRate)   : Promise.resolve({}),
+    ]);
+
+    const allPrices: Record<string, number> = { ...cryptoPrices, ...stockPrices };
+
+    // Calculate holdings
+    const holdings: AssetHolding[] = [];
     let totalPortfolioValue = 0;
 
     for (const [symbol, data] of holdingsMap.entries()) {
-      const totalBought = data.buyTransactions.reduce((sum, t) => sum + t.amount, 0);
-      const totalSold = data.sellTransactions.reduce((sum, t) => sum + t.amount, 0);
-      const netAmount = totalBought - totalSold;
+      const totalBought = data.buyTx.reduce((s, t) => s + t.amount, 0);
+      const totalSold   = data.sellTx.reduce((s, t) => s + t.amount, 0);
+      const netAmount   = totalBought - totalSold;
+      if (netAmount <= 0) continue;
 
-      if (netAmount <= 0) continue; // Skip fully sold positions
+      const totalCost    = data.buyTx.reduce((s, t) => s + t.totalValue, 0);
+      const avgBuyPrice  = totalBought > 0 ? totalCost / totalBought : 0;
+      // สำหรับ US stocks: totalCost อาจเป็น USD → แปลงเป็น THB
+      const isUsdAsset = data.txCurrency === "USD";
+      const totalCostTHB   = isUsdAsset ? totalCost   * usdThbRate : totalCost;
+      const avgBuyPriceTHB = isUsdAsset ? avgBuyPrice * usdThbRate : avgBuyPrice;
 
-      const totalCost = data.buyTransactions.reduce((sum, t) => sum + t.totalValue, 0);
-      const avgBuyPrice = totalBought > 0 ? totalCost / totalBought : 0;
+      // ใช้ราคาซื้อเป็น fallback ถ้าดึงราคาปัจจุบันไม่ได้
+      const fetchedPrice = allPrices[symbol];
+      const currentPrice = fetchedPrice != null && fetchedPrice > 0
+        ? fetchedPrice
+        : avgBuyPriceTHB;
 
-      const currentPrice = prices[symbol] || 0;
-      const currentValue = netAmount * currentPrice;
-      const costBasisForHeld = netAmount * avgBuyPrice;
-      const unrealizedPnl = currentValue - costBasisForHeld;
+      const currentValue     = netAmount * currentPrice;
+      const costBasisForHeld = netAmount * avgBuyPriceTHB;
+      const unrealizedPnl   = currentValue - costBasisForHeld;
       const unrealizedPnlPercent = costBasisForHeld > 0
         ? (unrealizedPnl / costBasisForHeld) * 100
         : 0;
@@ -151,44 +242,48 @@ export async function GET(request: NextRequest) {
       holdings.push({
         symbol,
         name: data.name,
+        assetType: data.assetType,
         coingeckoId: data.coingeckoId,
         totalBought,
         totalSold,
         netAmount,
-        avgBuyPrice,
-        totalCost,
+        avgBuyPrice: avgBuyPriceTHB,
+        totalCost: totalCostTHB,
         currentPrice,
         currentValue,
         unrealizedPnl,
         unrealizedPnlPercent,
-        allocation: 0, // calculated after
+        allocation: 0,
+        currency: "THB",
       });
     }
 
-    // Calculate allocations
+    // Allocation %
     holdings.forEach((h) => {
       h.allocation = totalPortfolioValue > 0
         ? (h.currentValue / totalPortfolioValue) * 100
         : 0;
     });
 
-    // Sort by value descending
     holdings.sort((a, b) => b.currentValue - a.currentValue);
 
-    // Calculate realized P&L
+    // Realized P&L
     let totalRealizedPnl = 0;
     for (const [, data] of holdingsMap.entries()) {
-      const avgBuyPrice = data.buyTransactions.reduce((sum, t) => sum + t.totalValue, 0) /
-        Math.max(data.buyTransactions.reduce((sum, t) => sum + t.amount, 0), 0.000001);
+      const totalBought = data.buyTx.reduce((s, t) => s + t.amount, 0);
+      const totalCost   = data.buyTx.reduce((s, t) => s + t.totalValue, 0);
+      const avgBuyPrice = totalBought > 0 ? totalCost / totalBought : 0;
+      const isUsdAsset  = data.txCurrency === "USD";
 
-      for (const sell of data.sellTransactions) {
-        const costBasis = sell.amount * avgBuyPrice;
-        totalRealizedPnl += sell.totalValue - costBasis;
+      for (const sell of data.sellTx) {
+        const costBasis = sell.amount * (isUsdAsset ? avgBuyPrice * usdThbRate : avgBuyPrice);
+        const sellValueTHB = isUsdAsset ? sell.totalValue * usdThbRate : sell.totalValue;
+        totalRealizedPnl += sellValueTHB - costBasis;
       }
     }
 
-    const totalUnrealizedPnl = holdings.reduce((sum, h) => sum + h.unrealizedPnl, 0);
-    const totalInvested = holdings.reduce((sum, h) => sum + h.totalCost, 0);
+    const totalUnrealizedPnl = holdings.reduce((s, h) => s + h.unrealizedPnl, 0);
+    const totalInvested       = holdings.reduce((s, h) => s + h.totalCost, 0);
 
     return NextResponse.json({
       holdings,
@@ -204,9 +299,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Portfolio error:", error);
-    return NextResponse.json(
-      { error: "Failed to calculate portfolio" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to calculate portfolio" }, { status: 500 });
   }
 }

@@ -15,6 +15,7 @@ import { format } from "date-fns";
 
 interface ParsedData {
   exchange: string;
+  assetType: "CRYPTO" | "STOCK";
   type: "BUY" | "SELL";
   coinSymbol: string;
   amount: number;
@@ -38,6 +39,9 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
   const [imageUrl, setImageUrl] = useState<string>("");
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [formData, setFormData] = useState<ParsedData | null>(null);
+  const [assetType, setAssetType] = useState<"CRYPTO" | "STOCK">("CRYPTO");
+  // แยก state string สำหรับ input ตัวเลข เพื่อรองรับการพิมพ์ทศนิยมหลายหลัก เช่น 0.000000001
+  const [rawInputs, setRawInputs] = useState({ amount: "", price: "", totalValue: "" });
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -88,24 +92,37 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
         if (ocrRes.ok) {
           const { data } = await ocrRes.json();
           setParsedData(data);
-          setFormData({
+          const resolved = {
             ...data,
+            assetType: data.assetType ?? assetType,
             txDate: data.txDate || new Date().toISOString(),
+          };
+          setFormData(resolved);
+          setAssetType(resolved.assetType);
+          setRawInputs({
+            amount: String(data.amount ?? ""),
+            price: String(data.price ?? ""),
+            totalValue: String(data.totalValue ?? ""),
           });
           setState("review");
           return;
         }
 
-        // Show specific error for missing API key
         const errBody = await ocrRes.json().catch(() => ({}));
-        if (errBody?.error === "NO_API_KEY") {
-          setError("⚠️ OCR ไม่พร้อมใช้งาน: กรุณาตั้งค่า ANTHROPIC_API_KEY ใน .env.local แล้ว restart server");
+        if (errBody?.error === "NO_API_KEY" || errBody?.error === "INVALID_API_KEY") {
+          setError(
+            "⚠️ OCR ไม่พร้อมใช้งาน: กรุณาใส่ GEMINI_API_KEY ใน .env.local " +
+            "(รับฟรีที่ aistudio.google.com) แล้ว restart server"
+          );
+        } else {
+          setError(`⚠️ OCR ล้มเหลว: ${errBody?.message || errBody?.error || "Unknown error"}`);
         }
       }
 
       // PDF or OCR unavailable — show manual form pre-filled with defaults
       setFormData({
-        exchange: "bitkub",
+        exchange: assetType === "CRYPTO" ? "bitkub" : "set",
+        assetType,
         type: "BUY",
         coinSymbol: "",
         amount: 0,
@@ -115,6 +132,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
         txDate: new Date().toISOString(),
         confidence: 0,
       });
+      setRawInputs({ amount: "", price: "", totalValue: "" });
       setState("review");
     } catch (err) {
       console.error(err);
@@ -154,6 +172,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
         body: JSON.stringify({
           ...formData,
           coinSymbol: formData.coinSymbol.trim().toUpperCase(),
+          assetType: formData.assetType ?? "CRYPTO",
           slipImageUrl: imageUrl || null,
         }),
       });
@@ -179,6 +198,8 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
     setImageUrl("");
     setParsedData(null);
     setFormData(null);
+    setAssetType("CRYPTO");
+    setRawInputs({ amount: "", price: "", totalValue: "" });
   };
 
   const updateForm = (field: keyof ParsedData, value: string | number) => {
@@ -206,10 +227,33 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
       {/* Upload Zone */}
       {(state === "idle" || state === "error") && (
         <>
+          {/* Asset Type Selector */}
+          <div>
+            <p className="text-xs text-gray-400 mb-2">ประเภทสินทรัพย์</p>
+            <div className="flex gap-2">
+              {(["CRYPTO", "STOCK"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setAssetType(t)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors border ${
+                    assetType === t
+                      ? t === "CRYPTO"
+                        ? "bg-blue-600 border-blue-500 text-white"
+                        : "bg-emerald-600 border-emerald-500 text-white"
+                      : "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700"
+                  }`}
+                >
+                  {t === "CRYPTO" ? "🪙 Crypto" : "📈 หุ้น (Stock)"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div
             {...getRootProps()}
             className={`
-              border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all
+              border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all
               ${isDragActive
                 ? "border-blue-500 bg-blue-950/30"
                 : "border-gray-700 hover:border-gray-500 hover:bg-gray-800/30"
@@ -219,14 +263,42 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
             <input {...getInputProps()} />
             <Upload className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-white font-medium mb-1">
-              {isDragActive ? "Drop your slip here" : "Upload Trading Slip"}
+              {isDragActive ? "Drop your slip here" : "อัปโหลดสลิป"}
             </p>
             <p className="text-gray-500 text-sm">
-              Drag & drop or click to browse
+              {assetType === "CRYPTO"
+                ? "สลิปจาก Bitkub / Binance TH / Binance"
+                : "สลิปจากโบรกเกอร์ไทย / US Stocks"}
             </p>
             <p className="text-gray-600 text-xs mt-2">
               JPG, PNG, WebP, PDF — max 10MB
             </p>
+          </div>
+
+          <div className="text-center">
+            <span className="text-gray-600 text-xs">หรือ</span>
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({
+                  exchange: assetType === "CRYPTO" ? "bitkub" : "set",
+                  assetType,
+                  type: "BUY",
+                  coinSymbol: "",
+                  amount: 0,
+                  price: 0,
+                  totalValue: 0,
+                  currency: "THB",
+                  txDate: new Date().toISOString(),
+                  confidence: 0,
+                });
+                setRawInputs({ amount: "", price: "", totalValue: "" });
+                setState("review");
+              }}
+              className="ml-2 text-xs text-blue-400 hover:text-blue-300 underline"
+            >
+              กรอกข้อมูลเอง
+            </button>
           </div>
 
           {error && (
@@ -293,16 +365,67 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Asset Type */}
+            <div className="md:col-span-2">
+              <label className="block text-xs text-gray-400 mb-1">ประเภทสินทรัพย์</label>
+              <div className="flex gap-2">
+                {(["CRYPTO", "STOCK"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      setAssetType(t);
+                      updateForm("assetType", t);
+                      updateForm("exchange", t === "CRYPTO" ? "bitkub" : "set");
+                    }}
+                    className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      assetType === t
+                        ? t === "CRYPTO"
+                          ? "bg-blue-600 text-white"
+                          : "bg-emerald-600 text-white"
+                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    }`}
+                  >
+                    {t === "CRYPTO" ? "🪙 Crypto" : "📈 หุ้น (Stock)"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Exchange</label>
+              <label className="block text-xs text-gray-400 mb-1">Exchange / โบรกเกอร์</label>
               <select
                 value={formData.exchange}
                 onChange={(e) => updateForm("exchange", e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="bitkub">Bitkub</option>
-                <option value="binanceth">Binance TH</option>
-                <option value="binance">Binance</option>
+                {formData.assetType === "CRYPTO" ? (
+                  <>
+                    <option value="bitkub">Bitkub</option>
+                    <option value="binanceth">Binance TH</option>
+                    <option value="binance">Binance</option>
+                  </>
+                ) : (
+                  <>
+                    <optgroup label="ตลาดหุ้นไทย (SET)">
+                      <option value="set">SET (ตรง)</option>
+                      <option value="ktbst">KTBST</option>
+                      <option value="mbket">MBKet</option>
+                      <option value="kasikorn">Kasikorn (KKPS)</option>
+                      <option value="kgi">KGI</option>
+                      <option value="tisco">TISCO</option>
+                      <option value="scbs">SCB Securities</option>
+                      <option value="uob">UOB Kay Hian</option>
+                      <option value="mai">MAI</option>
+                    </optgroup>
+                    <optgroup label="ตลาดหุ้นต่างประเทศ">
+                      <option value="nyse">NYSE (US)</option>
+                      <option value="nasdaq">NASDAQ (US)</option>
+                      <option value="hkex">HKEX (Hong Kong)</option>
+                      <option value="sgx">SGX (Singapore)</option>
+                    </optgroup>
+                  </>
+                )}
               </select>
             </div>
 
@@ -352,11 +475,17 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
             <div>
               <label className="block text-xs text-gray-400 mb-1">Amount (crypto)</label>
               <input
-                type="number"
-                value={formData.amount || ""}
-                onChange={(e) => updateForm("amount", parseFloat(e.target.value) || 0)}
+                type="text"
+                inputMode="decimal"
+                value={rawInputs.amount}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setRawInputs((prev) => ({ ...prev, amount: raw }));
+                  const v = parseFloat(raw);
+                  if (!isNaN(v)) updateForm("amount", v);
+                }}
                 step="any"
-                placeholder="0.001"
+                placeholder="0.000000001"
                 className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -364,9 +493,15 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
             <div>
               <label className="block text-xs text-gray-400 mb-1">Price per unit</label>
               <input
-                type="number"
-                value={formData.price || ""}
-                onChange={(e) => updateForm("price", parseFloat(e.target.value) || 0)}
+                type="text"
+                inputMode="decimal"
+                value={rawInputs.price}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setRawInputs((prev) => ({ ...prev, price: raw }));
+                  const v = parseFloat(raw);
+                  if (!isNaN(v)) updateForm("price", v);
+                }}
                 step="any"
                 placeholder="2000000"
                 className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -376,9 +511,15 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
             <div>
               <label className="block text-xs text-gray-400 mb-1">Total Value</label>
               <input
-                type="number"
-                value={formData.totalValue || ""}
-                onChange={(e) => updateForm("totalValue", parseFloat(e.target.value) || 0)}
+                type="text"
+                inputMode="decimal"
+                value={rawInputs.totalValue}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setRawInputs((prev) => ({ ...prev, totalValue: raw }));
+                  const v = parseFloat(raw);
+                  if (!isNaN(v)) updateForm("totalValue", v);
+                }}
                 step="any"
                 placeholder="2000"
                 className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -6,15 +6,27 @@ import { z } from "zod";
 
 const FREE_PLAN_LIMIT = 50;
 
+const EXCHANGES = [
+  // Crypto
+  "bitkub", "binanceth", "binance",
+  // Thai stocks
+  "set", "mai", "ktbst", "mbket", "kasikorn", "kgi", "tisco", "uob", "scbs",
+  // US / Global stocks
+  "nyse", "nasdaq", "hkex", "sgx",
+  // Generic
+  "other",
+] as const;
+
 const transactionSchema = z.object({
   coinSymbol: z.string().min(1).max(20).toUpperCase(),
   coinName: z.string().optional(),
+  assetType: z.enum(["CRYPTO", "STOCK"]).default("CRYPTO"),
   type: z.enum(["BUY", "SELL"]),
   amount: z.number().nonnegative(),
   price: z.number().nonnegative(),
   totalValue: z.number().nonnegative(),
   currency: z.enum(["THB", "USDT", "USD"]),
-  exchange: z.enum(["bitkub", "binanceth", "binance"]),
+  exchange: z.enum(EXCHANGES),
   txDate: z.string().datetime(),
   slipImageUrl: z.string().optional().nullable(),
 });
@@ -123,10 +135,11 @@ export async function POST(request: NextRequest) {
     // Get or create coin
     const coin = await prisma.coin.upsert({
       where: { symbol: data.coinSymbol },
-      update: {},
+      update: { assetType: data.assetType },
       create: {
         symbol: data.coinSymbol,
         name: data.coinName || data.coinSymbol,
+        assetType: data.assetType,
       },
     });
 
@@ -161,6 +174,54 @@ export async function POST(request: NextRequest) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Transaction ID required" }, { status: 400 });
+
+  const existing = await prisma.transaction.findFirst({ where: { id, userId: session.user.id } });
+  if (!existing) return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+
+  try {
+    const body = await request.json();
+    const data = transactionSchema.parse(body);
+
+    const coin = await prisma.coin.upsert({
+      where: { symbol: data.coinSymbol },
+      update: { assetType: data.assetType },
+      create: { symbol: data.coinSymbol, name: data.coinName || data.coinSymbol, assetType: data.assetType },
+    });
+
+    const transaction = await prisma.transaction.update({
+      where: { id },
+      data: {
+        coinId: coin.id,
+        type: data.type,
+        amount: data.amount,
+        price: data.price,
+        totalValue: data.totalValue,
+        currency: data.currency,
+        exchange: data.exchange,
+        txDate: new Date(data.txDate),
+        slipImageUrl: data.slipImageUrl,
+      },
+      include: { coin: { select: { symbol: true, name: true } } },
+    });
+
+    return NextResponse.json({ transaction });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

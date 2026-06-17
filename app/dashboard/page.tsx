@@ -333,6 +333,7 @@ export default function DashboardPage() {
           <TransactionTable
             transactions={transactions}
             onDelete={handleDeleteTransaction}
+            onEdit={() => fetchData()}
           />
           {transactions.length >= 10 && (
             <p className="text-center text-gray-600 text-sm mt-4">

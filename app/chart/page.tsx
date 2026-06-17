@@ -21,6 +21,8 @@ interface Transaction {
   coin: { symbol: string; name: string };
 }
 
+// pass currency ไปด้วยเพื่อให้ chart คำนวณ tier ถูกต้อง
+
 export default function ChartPage() {
   const { status } = useSession();
   const router = useRouter();

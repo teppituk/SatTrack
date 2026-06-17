@@ -5,7 +5,7 @@
 
 import { Worker, Job } from "bullmq";
 import IORedis from "ioredis";
-import { parseSlipFromUrl } from "./anthropic";
+import { parseSlipFromUrl } from "./gemini";
 import { prisma } from "./prisma";
 
 const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
