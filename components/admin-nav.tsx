@@ -10,6 +10,7 @@ import {
   Shield,
   User,
   KeyRound,
+  Building2,
 } from "lucide-react";
 
 export function AdminNav() {
@@ -20,6 +21,7 @@ export function AdminNav() {
     { href: "/admin", icon: LayoutDashboard, label: "Overview" },
     { href: "/admin/users", icon: Users, label: "User Management" },
     { href: "/admin/roles", icon: KeyRound, label: "Role Management" },
+    { href: "/admin/exchanges", icon: Building2, label: "Exchange Management" },
   ];
 
   return (

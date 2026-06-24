@@ -11,6 +11,7 @@ import {
   RefreshCw,
   ArrowUpRight,
   ArrowDownRight,
+  Bitcoin,
 } from "lucide-react";
 import { AppShell } from "@/components/nav";
 import { PortfolioChart } from "@/components/portfolio-chart";
@@ -36,9 +37,13 @@ interface PortfolioSummary {
   totalUnrealizedPnl: number;
   totalRealizedPnl: number;
   totalPnl: number;
+  btcPrice: number;
+  usdThbRate: number;
   currency: string;
   lastUpdated: string;
 }
+
+type Currency = "THB" | "USDT";
 
 interface Transaction {
   id: string;
@@ -53,12 +58,19 @@ interface Transaction {
   coin: { symbol: string; name: string };
 }
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("th-TH", {
-    style: "currency",
-    currency: "THB",
+function formatCurrency(value: number, currency: Currency = "THB"): string {
+  if (currency === "THB") {
+    return new Intl.NumberFormat("th-TH", {
+      style: "currency",
+      currency: "THB",
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+  // USDT — ไม่ใช่รหัสสกุลเงิน ISO มาตรฐาน จึง format เองแล้วต่อท้ายด้วย USDT
+  return `${new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value);
+  }).format(value)} USDT`;
 }
 
 function StatCard({
@@ -103,6 +115,7 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currency, setCurrency] = useState<Currency>("THB");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -113,7 +126,7 @@ export default function DashboardPage() {
   const fetchData = async () => {
     try {
       const [portfolioRes, txRes] = await Promise.all([
-        fetch("/api/portfolio"),
+        fetch(`/api/portfolio?currency=${currency}`),
         fetch("/api/transactions?limit=10"),
       ]);
 
@@ -139,7 +152,9 @@ export default function DashboardPage() {
     if (status === "authenticated") {
       fetchData();
     }
-  }, [status]);
+    // refetch เมื่อสลับสกุลเงิน
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, currency]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -170,39 +185,69 @@ export default function DashboardPage() {
     <AppShell>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-white">{t("dashboard.title")}</h1>
             <p className="text-gray-400 text-sm mt-1">
               {t("dashboard.welcomeBack")}, {session?.user?.name || session?.user?.email}
             </p>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-xl transition-all text-sm"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            {t("dashboard.refreshPrices")}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* ราคา Bitcoin ปัจจุบัน */}
+            <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2">
+              <Bitcoin className="h-5 w-5 text-orange-400" />
+              <div className="leading-tight">
+                <p className="text-[11px] text-gray-500">{t("dashboard.btcPrice")}</p>
+                <p className="text-sm font-semibold text-white">
+                  {summary ? formatCurrency(summary.btcPrice, currency) : "—"}
+                </p>
+              </div>
+            </div>
+
+            {/* ปุ่มสลับสกุลเงิน THB / USDT */}
+            <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
+              {(["THB", "USDT"] as Currency[]).map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCurrency(c)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    currency === c
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-xl transition-all text-sm"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              {t("dashboard.refreshPrices")}
+            </button>
+          </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             title={t("dashboard.totalValue")}
-            value={formatCurrency(summary?.totalPortfolioValue || 0)}
+            value={formatCurrency(summary?.totalPortfolioValue || 0, currency)}
             icon={<DollarSign className="h-5 w-5" />}
           />
           <StatCard
             title={t("dashboard.totalInvested")}
-            value={formatCurrency(summary?.totalInvested || 0)}
+            value={formatCurrency(summary?.totalInvested || 0, currency)}
             icon={<Coins className="h-5 w-5" />}
           />
           <StatCard
             title={t("dashboard.unrealizedPnl")}
-            value={formatCurrency(summary?.totalUnrealizedPnl || 0)}
-            change={formatCurrency(Math.abs(summary?.totalUnrealizedPnl || 0))}
+            value={formatCurrency(summary?.totalUnrealizedPnl || 0, currency)}
+            change={formatCurrency(Math.abs(summary?.totalUnrealizedPnl || 0), currency)}
             changePercent={
               summary?.totalInvested
                 ? `${(((summary?.totalUnrealizedPnl || 0) / summary.totalInvested) * 100).toFixed(2)}%`
@@ -219,7 +264,7 @@ export default function DashboardPage() {
           />
           <StatCard
             title={t("dashboard.realizedPnl")}
-            value={formatCurrency(summary?.totalRealizedPnl || 0)}
+            value={formatCurrency(summary?.totalRealizedPnl || 0, currency)}
             positive={(summary?.totalRealizedPnl || 0) >= 0}
             icon={
               (summary?.totalRealizedPnl || 0) >= 0 ? (
@@ -276,15 +321,15 @@ export default function DashboardPage() {
                           {h.netAmount.toFixed(8).replace(/\.?0+$/, "")}
                         </td>
                         <td className="py-3 px-2 text-right text-gray-300">
-                          {formatCurrency(h.avgBuyPrice)}
+                          {formatCurrency(h.avgBuyPrice, currency)}
                         </td>
                         <td className="py-3 px-2 text-right text-white font-medium">
-                          {formatCurrency(h.currentValue)}
+                          {formatCurrency(h.currentValue, currency)}
                         </td>
                         <td className="py-3 px-2 text-right">
                           <div className={h.unrealizedPnl >= 0 ? "text-green-400" : "text-red-400"}>
                             {h.unrealizedPnl >= 0 ? "+" : ""}
-                            {formatCurrency(h.unrealizedPnl)}
+                            {formatCurrency(h.unrealizedPnl, currency)}
                           </div>
                           <div className={`text-xs ${h.unrealizedPnlPercent >= 0 ? "text-green-500" : "text-red-500"}`}>
                             {h.unrealizedPnlPercent >= 0 ? "+" : ""}

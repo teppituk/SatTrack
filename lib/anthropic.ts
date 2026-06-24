@@ -115,38 +115,16 @@ export async function parseSlipImage(
 }
 
 export async function parseSlipFromUrl(imageUrl: string): Promise<ParsedSlipData> {
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: {
-              type: "url",
-              url: imageUrl,
-            },
-          },
-          {
-            type: "text",
-            text: SLIP_PARSE_PROMPT,
-          },
-        ],
-      },
-    ],
-  });
-
-  const textContent = response.content.find((c) => c.type === "text");
-  if (!textContent || textContent.type !== "text") {
-    throw new Error("No text response from Claude");
+  // SDK เวอร์ชันนี้รองรับเฉพาะ base64 source — ดึงรูปจาก URL มาแปลงเป็น base64 ก่อน
+  const res = await fetch(imageUrl);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch image from URL: ${res.status}`);
   }
-
-  const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Could not extract JSON from Claude response");
-  }
-
-  return JSON.parse(jsonMatch[0]) as ParsedSlipData;
+  const contentType = res.headers.get("content-type") || "image/jpeg";
+  const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
+  const mediaType = (allowed.includes(contentType as (typeof allowed)[number])
+    ? contentType
+    : "image/jpeg") as (typeof allowed)[number];
+  const base64 = Buffer.from(await res.arrayBuffer()).toString("base64");
+  return parseSlipImage(base64, mediaType);
 }

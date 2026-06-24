@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp, Mail, Lock, AlertCircle, Loader2, CheckCircle } from "lucide-react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingUp className="h-8 w-8 text-blue-500" />
-            <span className="text-2xl font-bold text-white">CryptoSlip</span>
+            <span className="text-2xl font-bold text-white">StackSat</span>
           </div>
           <p className="text-gray-400">
             {token ? "Set your new password" : "Reset your password"}
@@ -230,5 +230,13 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

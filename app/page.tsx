@@ -31,7 +31,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-blue-500" />
-            <span className="text-xl font-bold">CryptoSlip Tracker</span>
+            <span className="text-xl font-bold">StackSat</span>
           </div>
           <div className="flex items-center gap-4">
             <Link
@@ -126,7 +126,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold mb-4">Ready to track smarter?</h2>
             <p className="text-gray-400 mb-8">
               Join thousands of Thai crypto traders who track their portfolio
-              with CryptoSlip Tracker.
+              with StackSat.
             </p>
             <Link
               href="/register"
@@ -140,7 +140,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-800 py-8 px-4 text-center text-gray-500 text-sm">
-        <p>© 2024 CryptoSlip Tracker. All rights reserved.</p>
+        <p>© 2024 StackSat. All rights reserved.</p>
       </footer>
     </div>
   );

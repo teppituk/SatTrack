@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { TrendingUp, Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingUp className="h-8 w-8 text-blue-500" />
-            <span className="text-2xl font-bold text-white">CryptoSlip</span>
+            <span className="text-2xl font-bold text-white">StackSat</span>
           </div>
           <p className="text-gray-400">{t("auth.signInToAccount")}</p>
         </div>
@@ -186,5 +186,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

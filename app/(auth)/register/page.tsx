@@ -106,7 +106,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingUp className="h-8 w-8 text-blue-500" />
-            <span className="text-2xl font-bold text-white">CryptoSlip</span>
+            <span className="text-2xl font-bold text-white">StackSat</span>
           </div>
           <p className="text-gray-400">{t("auth.createFreeAccount")}</p>
         </div>

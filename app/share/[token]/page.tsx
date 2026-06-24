@@ -75,9 +75,10 @@ function formatCurrency(value: number): string {
 export default async function SharePage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const shareData = await getSharedPortfolio(params.token);
+  const { token } = await params;
+  const shareData = await getSharedPortfolio(token);
 
   if (!shareData) notFound();
 
@@ -141,7 +142,7 @@ export default async function SharePage({
           <div>
             <h1 className="font-bold">Shared Portfolio</h1>
             <p className="text-xs text-gray-500">
-              {shareData.user.name || "Anonymous"} &middot; via CryptoSlip Tracker
+              {shareData.user.name || "Anonymous"} &middot; via StackSat
             </p>
           </div>
         </div>
@@ -260,7 +261,7 @@ export default async function SharePage({
 
         <p className="text-center text-gray-600 text-xs">
           Powered by{" "}
-          <span className="text-blue-500">CryptoSlip Tracker</span>
+          <span className="text-blue-500">StackSat</span>
         </p>
       </main>
     </div>

@@ -43,6 +43,14 @@ model Coin {
   transactions Transaction[]
 }
 
+model Exchange {
+  id        String   @id @default(cuid())
+  code      String   @unique // bitkub, binanceth, binance — ใช้เก็บใน Transaction.exchange
+  name      String          // ชื่อแสดงผล เช่น Bitkub
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
 model Transaction {
   id           String   @id @default(cuid())
   userId       String

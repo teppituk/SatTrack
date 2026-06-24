@@ -3,20 +3,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const role = await prisma.role.findUnique({ where: { id: params.id } });
+  const { id } = await params;
+  const role = await prisma.role.findUnique({ where: { id } });
   if (!role) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
   const { label, permissions } = body as { label?: string; permissions?: Record<string, boolean> };
 
   const updated = await prisma.role.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...(label ? { label } : {}),
       ...(permissions ? { permissions } : {}),
@@ -26,13 +27,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const role = await prisma.role.findUnique({ where: { id: params.id } });
+  const { id } = await params;
+  const role = await prisma.role.findUnique({ where: { id } });
   if (!role) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (role.isSystem) return NextResponse.json({ error: "Cannot delete system role" }, { status: 400 });
 
@@ -44,6 +46,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     );
   }
 
-  await prisma.role.delete({ where: { id: params.id } });
+  await prisma.role.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

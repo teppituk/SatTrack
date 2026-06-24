@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/nav";
@@ -31,7 +31,7 @@ interface SubscriptionData {
   };
 }
 
-export default function SubscriptionPage() {
+function SubscriptionContent() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -342,5 +342,13 @@ export default function SubscriptionPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+export default function SubscriptionPage() {
+  return (
+    <Suspense fallback={null}>
+      <SubscriptionContent />
+    </Suspense>
   );
 }

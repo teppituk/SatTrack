@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
+import type { ConnectionOptions } from "bullmq";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -19,7 +20,8 @@ async function saveLocally(buffer: Buffer, fileName: string, contentType: string
   const uploadDir = path.join(process.cwd(), "public", "uploads", "slips");
   await fs.mkdir(uploadDir, { recursive: true });
   await fs.writeFile(path.join(uploadDir, uniqueName), buffer);
-  return `/uploads/slips/${uniqueName}`;
+  // serve ผ่าน API route (ทำงานทั้ง next dev และ next start)
+  return `/api/slips/${uniqueName}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -68,7 +70,7 @@ export async function POST(request: NextRequest) {
         const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
           maxRetriesPerRequest: null,
         });
-        const ocrQueue = new Queue("ocr-jobs", { connection });
+        const ocrQueue = new Queue("ocr-jobs", { connection: connection as unknown as ConnectionOptions });
         await ocrQueue.add("process-slip", { imageUrl, userId: session.user.id, key, contentType: file.type }, {
           attempts: 3,
           backoff: { type: "exponential", delay: 2000 },

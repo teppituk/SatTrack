@@ -77,7 +77,7 @@ export const authOptions: NextAuthOptions = {
             where: { name: dbUser.role },
             select: { permissions: true },
           });
-          token.permissions = (roleRecord?.permissions as import("@/types/next-auth").RolePermissions) ?? null;
+          token.permissions = (roleRecord?.permissions as unknown as import("@/types/next-auth").RolePermissions) ?? null;
         }
       }
       return token;

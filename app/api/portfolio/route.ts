@@ -285,14 +285,32 @@ export async function GET(request: NextRequest) {
     const totalUnrealizedPnl = holdings.reduce((s, h) => s + h.unrealizedPnl, 0);
     const totalInvested       = holdings.reduce((s, h) => s + h.totalCost, 0);
 
+    // ราคา BTC ปัจจุบัน (แสดงบน dashboard เสมอ ไม่ว่าจะถือ BTC หรือไม่)
+    const btcPriceThb =
+      allPrices["BTC"] ?? (await fetchCryptoPricesTHB(["BTC"], usdThbRate))["BTC"] ?? 0;
+
+    // ทุกค่าด้านบนคำนวณเป็น THB — แปลงเป็นสกุลที่เลือก (USDT/USD ≈ หาร USD/THB rate)
+    const isUsdt = currency.toUpperCase() === "USDT" || currency.toUpperCase() === "USD";
+    const convert = (thb: number) => (isUsdt ? thb / usdThbRate : thb);
+
     return NextResponse.json({
-      holdings,
+      holdings: holdings.map((h) => ({
+        ...h,
+        avgBuyPrice: convert(h.avgBuyPrice),
+        totalCost: convert(h.totalCost),
+        currentPrice: convert(h.currentPrice),
+        currentValue: convert(h.currentValue),
+        unrealizedPnl: convert(h.unrealizedPnl),
+        currency,
+      })),
       summary: {
-        totalPortfolioValue,
-        totalInvested,
-        totalUnrealizedPnl,
-        totalRealizedPnl,
-        totalPnl: totalUnrealizedPnl + totalRealizedPnl,
+        totalPortfolioValue: convert(totalPortfolioValue),
+        totalInvested: convert(totalInvested),
+        totalUnrealizedPnl: convert(totalUnrealizedPnl),
+        totalRealizedPnl: convert(totalRealizedPnl),
+        totalPnl: convert(totalUnrealizedPnl + totalRealizedPnl),
+        btcPrice: convert(btcPriceThb),
+        usdThbRate,
         currency,
         lastUpdated: new Date().toISOString(),
       },

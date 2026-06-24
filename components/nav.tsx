@@ -7,7 +7,7 @@ import { signOut, useSession } from "next-auth/react";
 import {
   TrendingUp,
   LayoutDashboard,
-  Upload,
+  Bitcoin,
   BarChart2,
   Share2,
   Settings,
@@ -33,7 +33,7 @@ export function Nav() {
 
   const allNavItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard"), key: "dashboard" },
-    { href: "/upload", icon: Upload, label: t("nav.upload"), key: "upload" },
+    { href: "/upload", icon: Bitcoin, label: t("nav.upload"), key: "upload" },
     { href: "/chart", icon: BarChart2, label: t("nav.chart"), key: "chart" },
     { href: "/settings/share", icon: Share2, label: t("nav.share"), key: "share" },
     { href: "/settings/subscription", icon: Zap, label: t("nav.subscription"), key: "subscription" },
@@ -52,7 +52,7 @@ export function Nav() {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 border-b border-gray-800 h-14 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-blue-500" />
-          <span className="font-bold text-white">CryptoSlip</span>
+          <span className="font-bold text-white">StackSat</span>
         </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -82,7 +82,7 @@ export function Nav() {
         {/* Logo */}
         <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-800">
           <TrendingUp className="h-6 w-6 text-blue-500" />
-          <span className="text-lg font-bold text-white">CryptoSlip</span>
+          <span className="text-lg font-bold text-white">StackSat</span>
         </div>
 
         {/* Navigation */}

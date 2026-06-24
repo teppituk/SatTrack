@@ -1,7 +1,7 @@
 {
   "nav": {
     "dashboard": "แดชบอร์ด",
-    "upload": "อัพโหลดสลิป",
+    "upload": "Stack Bitcoin",
     "chart": "กราฟ",
     "share": "แชร์",
     "subscription": "แพ็คเกจ",
@@ -64,11 +64,12 @@
     "uploadSlipLink": "อัพโหลดสลิป",
     "showingLast": "แสดง 10 ธุรกรรมล่าสุด",
     "viewAllChart": "ดูทั้งหมดในกราฟ",
-    "currency": "สกุลเงิน"
+    "currency": "สกุลเงิน",
+    "btcPrice": "ราคา Bitcoin"
   },
   "upload": {
-    "title": "อัพโหลดสลิป",
-    "subtitle": "อัพโหลดสลิปการซื้อขายและให้ AI ดึงข้อมูลธุรกรรมโดยอัตโนมัติ",
+    "title": "Stack Bitcoin",
+    "subtitle": "บันทึกรายการซื้อ/ขาย Bitcoin (BTC) เพื่อติดตามการสะสมของคุณ",
     "dropzone": "ลากวางหรือคลิกเพื่อเลือกไฟล์",
     "dropzoneActive": "วางสลิปของคุณที่นี่",
     "dropzoneTitle": "อัพโหลดสลิปการซื้อขาย",
@@ -174,7 +175,7 @@
     "shareLinksDesc": "สร้างและจัดการลิงก์แชร์",
     "currentPlan": "แพ็คเกจปัจจุบัน",
     "accountVerified": "ยืนยันบัญชีแล้ว",
-    "appVersion": "CryptoSlip Tracker v0.1.0",
+    "appVersion": "StackSat v0.1.0",
     "builtWith": "สร้างด้วย Next.js 14, Prisma และ Claude AI"
   },
   "common": {

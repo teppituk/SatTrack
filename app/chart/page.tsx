@@ -21,7 +21,12 @@ interface Transaction {
   coin: { symbol: string; name: string };
 }
 
-// pass currency ไปด้วยเพื่อให้ chart คำนวณ tier ถูกต้อง
+type Currency = "THB" | "USDT";
+
+interface ExchangeOption {
+  code: string;
+  name: string;
+}
 
 export default function ChartPage() {
   const { status } = useSession();
@@ -33,6 +38,9 @@ export default function ChartPage() {
   const [selectedExchange, setSelectedExchange] = useState<string>("ALL");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  const [displayCurrency, setDisplayCurrency] = useState<Currency>("THB");
+  const [usdThbRate, setUsdThbRate] = useState<number>(35);
+  const [exchanges, setExchanges] = useState<ExchangeOption[]>([]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -48,15 +56,42 @@ export default function ChartPage() {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({ limit: "500" });
-      const res = await fetch(`/api/transactions?${params}`);
-      if (res.ok) {
-        const data = await res.json();
+      // ดึงรายการ + อัตราแลกเปลี่ยน USD/THB + รายการ exchange (ตามที่ admin จัดการ) พร้อมกัน
+      const [txRes, pfRes, exRes] = await Promise.all([
+        fetch(`/api/transactions?${params}`),
+        fetch(`/api/portfolio?currency=THB`),
+        fetch(`/api/exchanges`),
+      ]);
+      if (txRes.ok) {
+        const data = await txRes.json();
         setTransactions(data.transactions);
+      }
+      if (pfRes.ok) {
+        const pf = await pfRes.json();
+        if (pf?.summary?.usdThbRate) setUsdThbRate(pf.summary.usdThbRate);
+      }
+      if (exRes.ok) {
+        const ex = await exRes.json();
+        setExchanges(ex.exchanges ?? []);
       }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // แปลงค่าจากสกุลที่เก็บไว้ → สกุลที่เลือกแสดง (THB/USDT) ผ่าน USD/THB rate
+  const convertValue = (value: number, from: string, to: Currency): number => {
+    const thb = from === "THB" ? value : value * usdThbRate; // USD/USDT → THB
+    return to === "THB" ? thb : thb / usdThbRate;
+  };
+  const toDisplay = (tx: Transaction): Transaction => ({
+    ...tx,
+    price: convertValue(tx.price, tx.currency, displayCurrency),
+    totalValue: convertValue(tx.totalValue, tx.currency, displayCurrency),
+    currency: displayCurrency,
+  });
+  const fmt = (v: number) =>
+    v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // Get unique coins
   const coins = Array.from(
@@ -76,23 +111,44 @@ export default function ChartPage() {
     ? coins[0] || "BTC"
     : selectedCoin;
 
-  const chartTransactions = filtered.filter(
-    (tx) => selectedCoin === "ALL"
-      ? tx.coin.symbol === displayCoin
-      : tx.coin.symbol === selectedCoin
-  );
+  const chartTransactions = filtered
+    .filter((tx) =>
+      selectedCoin === "ALL"
+        ? tx.coin.symbol === displayCoin
+        : tx.coin.symbol === selectedCoin
+    )
+    .map(toDisplay);
 
   return (
     <AppShell>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-10 w-10 bg-purple-600/20 rounded-xl flex items-center justify-center">
-            <BarChart2 className="h-5 w-5 text-purple-400" />
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-purple-600/20 rounded-xl flex items-center justify-center">
+              <BarChart2 className="h-5 w-5 text-purple-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">{t("chart.title")}</h1>
+              <p className="text-gray-400 text-sm">{t("chart.subtitle")}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">{t("chart.title")}</h1>
-            <p className="text-gray-400 text-sm">{t("chart.subtitle")}</p>
+
+          {/* ปุ่มสลับสกุลเงิน THB / USDT */}
+          <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
+            {(["THB", "USDT"] as Currency[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => setDisplayCurrency(c)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  displayCurrency === c
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -125,9 +181,11 @@ export default function ChartPage() {
                 className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ALL">{t("chart.allExchanges")}</option>
-                <option value="bitkub">Bitkub</option>
-                <option value="binanceth">Binance TH</option>
-                <option value="binance">Binance</option>
+                {exchanges.map((ex) => (
+                  <option key={ex.code} value={ex.code}>
+                    {ex.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -212,7 +270,7 @@ export default function ChartPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {filtered.slice(0, 20).map((tx) => (
+                  {filtered.slice(0, 20).map(toDisplay).map((tx) => (
                     <tr key={tx.id} className="hover:bg-gray-800/50">
                       <td className="py-2 px-3 text-gray-400 text-xs">
                         {new Date(tx.txDate).toLocaleDateString("th-TH")}
@@ -233,10 +291,10 @@ export default function ChartPage() {
                         {tx.amount.toFixed(6)}
                       </td>
                       <td className="py-2 px-3 text-right text-gray-300">
-                        {tx.price.toLocaleString()}
+                        {fmt(tx.price)} <span className="text-gray-600 text-xs">{displayCurrency}</span>
                       </td>
                       <td className="py-2 px-3 text-right text-white">
-                        {tx.totalValue.toLocaleString()}
+                        {fmt(tx.totalValue)} <span className="text-gray-600 text-xs">{displayCurrency}</span>
                       </td>
                       <td className="py-2 px-3 text-gray-500 text-xs">
                         {tx.exchange}

@@ -1,7 +1,7 @@
 {
   "nav": {
     "dashboard": "Dashboard",
-    "upload": "Upload Slip",
+    "upload": "Stack Bitcoin",
     "chart": "Chart",
     "share": "Share",
     "subscription": "Subscription",
@@ -64,11 +64,12 @@
     "uploadSlipLink": "Upload Slip",
     "showingLast": "Showing last 10 transactions.",
     "viewAllChart": "View all in chart",
-    "currency": "Currency"
+    "currency": "Currency",
+    "btcPrice": "Bitcoin Price"
   },
   "upload": {
-    "title": "Upload Slip",
-    "subtitle": "Upload your trading slip and let AI extract the transaction details automatically.",
+    "title": "Stack Bitcoin",
+    "subtitle": "Record your Bitcoin (BTC) buy/sell transactions to track your stack.",
     "dropzone": "Drag & drop or click to browse",
     "dropzoneActive": "Drop your slip here",
     "dropzoneTitle": "Upload Trading Slip",
@@ -174,7 +175,7 @@
     "shareLinksDesc": "Create and manage share links",
     "currentPlan": "Current plan",
     "accountVerified": "Account verified",
-    "appVersion": "CryptoSlip Tracker v0.1.0",
+    "appVersion": "StackSat v0.1.0",
     "builtWith": "Built with Next.js 14, Prisma, and Claude AI"
   },
   "common": {

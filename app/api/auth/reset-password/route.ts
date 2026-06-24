@@ -36,10 +36,12 @@ export async function POST(request: NextRequest) {
     const token = crypto.randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 15 * 60 * 1000);
 
-    await prisma.verificationToken.upsert({
+    // ลบ reset token เก่าของ email นี้ (ถ้ามี) แล้วสร้างใหม่ — เก็บได้ token เดียวต่อ email
+    await prisma.verificationToken.deleteMany({
       where: { identifier: `reset-${email}` },
-      update: { token, expires },
-      create: {
+    });
+    await prisma.verificationToken.create({
+      data: {
         identifier: `reset-${email}`,
         token,
         expires,
@@ -51,11 +53,11 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: email,
-      subject: "Reset Your CryptoSlip Tracker Password",
+      subject: "Reset Your StackSat Password",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1d4ed8;">Reset Your Password</h2>
-          <p>You requested to reset your password for your CryptoSlip Tracker account.</p>
+          <p>You requested to reset your password for your StackSat account.</p>
           <p>Click the button below to set a new password. This link expires in <strong>15 minutes</strong>.</p>
           <a href="${resetUrl}"
              style="display: inline-block; background: #1d4ed8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">

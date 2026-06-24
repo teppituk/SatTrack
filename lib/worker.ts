@@ -3,7 +3,7 @@
  * Run with: npm run worker (or tsx lib/worker.ts)
  */
 
-import { Worker, Job } from "bullmq";
+import { Worker, Job, type ConnectionOptions } from "bullmq";
 import IORedis from "ioredis";
 import { parseSlipFromUrl } from "./gemini";
 import { prisma } from "./prisma";
@@ -58,7 +58,7 @@ const worker = new Worker<OcrJobData>(
     }
   },
   {
-    connection,
+    connection: connection as unknown as ConnectionOptions,
     concurrency: 5,
     limiter: {
       max: 10,
