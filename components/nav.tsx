@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
-  TrendingUp,
   LayoutDashboard,
   Bitcoin,
   BarChart2,
@@ -51,7 +50,7 @@ export function Nav() {
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 border-b border-gray-800 h-14 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-blue-500" />
+          <Bitcoin className="h-5 w-5 text-orange-400" />
           <span className="font-bold text-white">StackSat</span>
         </div>
         <button
@@ -81,7 +80,7 @@ export function Nav() {
       >
         {/* Logo */}
         <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-800">
-          <TrendingUp className="h-6 w-6 text-blue-500" />
+          <Bitcoin className="h-6 w-6 text-orange-400" />
           <span className="text-lg font-bold text-white">StackSat</span>
         </div>
 
