@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isBTCPayConfigured, createBTCPayInvoice } from "@/lib/btcpay";
+import { isPlanActive } from "@/lib/subscription";
 
 const SUBSCRIPTION_PLANS = {
   monthly: {
@@ -16,48 +18,11 @@ const SUBSCRIPTION_PLANS = {
   },
 };
 
-async function createBTCPayInvoice(amountSats: number, orderId: string, buyerEmail: string) {
-  const btcPayUrl = process.env.BTCPAY_URL;
-  const apiKey = process.env.BTCPAY_API_KEY;
-  const storeId = process.env.BTCPAY_STORE_ID;
+// เปิด mock payment ได้เมื่อยังไม่ได้ตั้ง BTCPay และตั้ง ALLOW_DEV_PAYMENTS=true อย่างชัดเจน
+const isDevMockAllowed =
+  !isBTCPayConfigured() && process.env.ALLOW_DEV_PAYMENTS === "true";
 
-  if (!btcPayUrl || !apiKey || !storeId) {
-    throw new Error("BTCPay Server is not configured");
-  }
-
-  const response = await fetch(`${btcPayUrl}/api/v1/stores/${storeId}/invoices`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `token ${apiKey}`,
-    },
-    body: JSON.stringify({
-      amount: amountSats,
-      currency: "SATS",
-      orderId,
-      buyer: { email: buyerEmail },
-      checkout: {
-        paymentMethods: ["BTC-LightningNetwork", "BTC"],
-        expirationMinutes: 60,
-        redirectURL: `${process.env.NEXTAUTH_URL}/settings/subscription?status=success`,
-        redirectAutomatically: true,
-      },
-      metadata: {
-        orderId,
-        buyerEmail,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`BTCPay API error: ${error}`);
-  }
-
-  return response.json();
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -75,12 +40,23 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
+  const active = isPlanActive(user?.plan ?? null, user?.planExpiresAt ?? null);
+
+  // lazy downgrade — เคย paid แต่หมดอายุแล้ว ปรับ plan กลับเป็น free ให้สถานะตรงความจริง
+  if (user?.plan === "paid" && !active) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { plan: "free" },
+    });
+  }
+
   return NextResponse.json({
-    currentPlan: user?.plan || "free",
+    currentPlan: active ? "paid" : "free",
     planExpiresAt: user?.planExpiresAt,
-    isActive: user?.plan === "paid" && user?.planExpiresAt && user.planExpiresAt > new Date(),
+    isActive: active,
     subscriptions,
     plans: SUBSCRIPTION_PLANS,
+    paymentMode: isBTCPayConfigured() ? "btcpay" : "dev",
   });
 }
 
@@ -105,25 +81,39 @@ export async function POST(request: NextRequest) {
       select: { email: true },
     });
 
-    const invoice = await createBTCPayInvoice(
-      plan.amountSats,
-      orderId,
-      user!.email
-    );
+    let invoiceId: string;
+    let checkoutLink: string;
+
+    if (isBTCPayConfigured()) {
+      const invoice = await createBTCPayInvoice(plan.amountSats, orderId, user!.email);
+      invoiceId = invoice.id;
+      checkoutLink = invoice.checkoutLink;
+    } else if (isDevMockAllowed) {
+      // โหมด dev (ไม่มี BTCPay) — สร้าง mock invoice + หน้าจำลองการชำระเงิน
+      invoiceId = `mock_${orderId}`;
+      checkoutLink =
+        `/settings/subscription/pay?invoiceId=${encodeURIComponent(invoiceId)}` +
+        `&amount=${plan.amountSats}&label=${encodeURIComponent(plan.label)}`;
+    } else {
+      return NextResponse.json(
+        { error: "BTCPay Server is not configured" },
+        { status: 503 }
+      );
+    }
 
     // Record pending subscription
     const subscription = await prisma.subscription.create({
       data: {
         userId: session.user.id,
-        invoiceId: invoice.id,
+        invoiceId,
         amountSats: plan.amountSats,
         status: "pending",
       },
     });
 
     return NextResponse.json({
-      invoiceId: invoice.id,
-      checkoutLink: invoice.checkoutLink,
+      invoiceId,
+      checkoutLink,
       subscriptionId: subscription.id,
     });
   } catch (error) {

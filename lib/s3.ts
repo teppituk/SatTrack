@@ -12,6 +12,10 @@ const s3Client = new S3Client({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
+  // รองรับ S3-compatible (MinIO / Cloudflare R2 / self-hosted) เมื่อกำหนด S3_ENDPOINT
+  ...(process.env.S3_ENDPOINT
+    ? { endpoint: process.env.S3_ENDPOINT, forcePathStyle: true }
+    : {}),
 });
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME!;
@@ -31,6 +35,25 @@ export async function uploadToS3(
   await s3Client.send(command);
 
   return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || "ap-southeast-1"}.amazonaws.com/${key}`;
+}
+
+// ดึง object จาก S3 มา stream ผ่าน API ของเราเอง (รองรับ private bucket + auth gate)
+export async function getObjectFromS3(
+  key: string
+): Promise<{ body: Buffer; contentType: string } | null> {
+  try {
+    const res = await s3Client.send(
+      new GetObjectCommand({ Bucket: BUCKET_NAME, Key: key })
+    );
+    if (!res.Body) return null;
+    const bytes = await res.Body.transformToByteArray();
+    return {
+      body: Buffer.from(bytes),
+      contentType: res.ContentType || "application/octet-stream",
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function getPresignedUploadUrl(

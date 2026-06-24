@@ -6,17 +6,6 @@ import { z } from "zod";
 
 const FREE_PLAN_LIMIT = 50;
 
-const EXCHANGES = [
-  // Crypto
-  "bitkub", "binanceth", "binance",
-  // Thai stocks
-  "set", "mai", "ktbst", "mbket", "kasikorn", "kgi", "tisco", "uob", "scbs",
-  // US / Global stocks
-  "nyse", "nasdaq", "hkex", "sgx",
-  // Generic
-  "other",
-] as const;
-
 const transactionSchema = z.object({
   coinSymbol: z.string().min(1).max(20).toUpperCase(),
   coinName: z.string().optional(),
@@ -26,7 +15,8 @@ const transactionSchema = z.object({
   price: z.number().nonnegative(),
   totalValue: z.number().nonnegative(),
   currency: z.enum(["THB", "USDT", "USD"]),
-  exchange: z.enum(EXCHANGES),
+  // exchange เป็นค่าจาก DB (admin จัดการได้) จึงรับเป็น string ทั่วไป
+  exchange: z.string().min(1).max(50),
   txDate: z.string().datetime(),
   slipImageUrl: z.string().optional().nullable(),
 });

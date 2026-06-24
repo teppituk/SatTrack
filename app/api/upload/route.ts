@@ -60,8 +60,11 @@ export async function POST(request: NextRequest) {
     if (hasS3Credentials) {
       const { uploadToS3 } = await import("@/lib/s3");
       const ext = file.type === "application/pdf" ? "pdf" : file.type.split("/")[1];
-      const key = `slips/${session.user.id}/${crypto.randomUUID()}.${ext}`;
-      imageUrl = await uploadToS3(buffer, key, file.type);
+      const fileName = `${crypto.randomUUID()}.${ext}`;
+      const key = `slips/${fileName}`;
+      await uploadToS3(buffer, key, file.type);
+      // เก็บ private — serve ผ่าน /api/slips (auth-gated) ไม่ใช้ public URL ของ S3
+      imageUrl = `/api/slips/${fileName}`;
 
       // Queue OCR job only when using S3
       try {

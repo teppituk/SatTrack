@@ -12,7 +12,12 @@ const CONTENT_TYPES: Record<string, string> = {
   ".gif": "image/gif",
 };
 
-// GET — serve รูปสลิปที่เก็บไว้ใน local storage (กรณีไม่ได้ใช้ S3)
+const hasS3Credentials =
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.S3_BUCKET_NAME;
+
+// GET — serve รูปสลิป (auth-gated) จาก S3 private bucket หรือ local storage
 export async function GET(_req: Request, { params }: { params: Promise<{ name: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -28,6 +33,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ name: s
     return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
   }
 
+  // S3 (private bucket) — ดึง object มา stream ผ่าน route นี้
+  if (hasS3Credentials) {
+    const { getObjectFromS3 } = await import("@/lib/s3");
+    const obj = await getObjectFromS3(`slips/${safeName}`);
+    if (!obj) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return new NextResponse(new Uint8Array(obj.body), {
+      headers: {
+        "Content-Type": obj.contentType || contentType,
+        "Cache-Control": "private, max-age=86400",
+      },
+    });
+  }
+
+  // Local storage fallback
   const filePath = path.join(process.cwd(), "public", "uploads", "slips", safeName);
   try {
     const file = await fs.readFile(filePath);

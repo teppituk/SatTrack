@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { activateSubscriptionByInvoice } from "@/lib/subscription";
 import crypto from "crypto";
 
 function verifyBTCPayWebhook(payload: string, signature: string, secret: string): boolean {
@@ -54,45 +55,12 @@ export async function POST(request: NextRequest) {
 
   if (event.type === "InvoiceSettled" || event.type === "InvoicePaymentSettled") {
     try {
-      const subscription = await prisma.subscription.findFirst({
-        where: { invoiceId: event.invoiceId },
-        include: { user: true },
-      });
-
-      if (!subscription) {
+      const ok = await activateSubscriptionByInvoice(event.invoiceId);
+      if (!ok) {
         console.warn("No subscription found for invoice:", event.invoiceId);
-        return NextResponse.json({ received: true });
+      } else {
+        console.log("Subscription activated for invoice:", event.invoiceId);
       }
-
-      if (subscription.status === "paid") {
-        return NextResponse.json({ received: true, note: "Already processed" });
-      }
-
-      // Determine plan duration from amount
-      const durationDays = subscription.amountSats >= 100000 ? 365 : 30;
-      const planExpiresAt = new Date();
-      planExpiresAt.setDate(planExpiresAt.getDate() + durationDays);
-
-      await Promise.all([
-        prisma.subscription.update({
-          where: { id: subscription.id },
-          data: {
-            status: "paid",
-            paidAt: new Date(),
-          },
-        }),
-        prisma.user.update({
-          where: { id: subscription.userId },
-          data: {
-            plan: "paid",
-            planExpiresAt,
-          },
-        }),
-      ]);
-
-      console.log(
-        `Subscription activated for user ${subscription.userId}, expires ${planExpiresAt}`
-      );
     } catch (error) {
       console.error("Webhook processing error:", error);
       return NextResponse.json({ error: "Processing failed" }, { status: 500 });
