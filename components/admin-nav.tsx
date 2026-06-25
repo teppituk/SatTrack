@@ -25,11 +25,11 @@ export function AdminNav() {
   ];
 
   return (
-    <aside className="fixed top-0 left-0 h-full z-40 w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+    <aside className="fixed top-0 left-0 h-full z-40 w-64 bg-card border-r border-border flex flex-col">
       {/* Logo / Header */}
-      <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-800">
+      <div className="h-16 flex items-center gap-2 px-6 border-b border-border">
         <Shield className="h-6 w-6 text-purple-500" />
-        <span className="text-lg font-bold text-white">Admin Panel</span>
+        <span className="text-lg font-bold text-foreground">Admin Panel</span>
       </div>
 
       {/* Navigation */}
@@ -47,7 +47,7 @@ export function AdminNav() {
                 ${
                   isActive
                     ? "bg-purple-600/20 text-purple-400 font-medium"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }
               `}
             >
@@ -59,10 +59,10 @@ export function AdminNav() {
       </nav>
 
       {/* Back to App + User Info */}
-      <div className="p-4 border-t border-gray-800 space-y-3">
+      <div className="p-4 border-t border-border space-y-3">
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>Back to App</span>
@@ -70,10 +70,10 @@ export function AdminNav() {
 
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
-            <User className="h-4 w-4 text-white" />
+            <User className="h-4 w-4 text-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {session?.user?.name || session?.user?.email?.split("@")[0] || "Admin"}
             </p>
             <p className="text-xs text-purple-400 truncate">Administrator</p>

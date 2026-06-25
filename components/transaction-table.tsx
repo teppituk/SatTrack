@@ -95,11 +95,11 @@ function EditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <h3 className="text-white font-semibold">แก้ไขธุรกรรม</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 className="text-foreground font-semibold">แก้ไขธุรกรรม</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -108,9 +108,9 @@ function EditModal({
         <div className="px-6 py-5 grid grid-cols-2 gap-4">
           {/* Type */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">ประเภท</label>
+            <label className="block text-xs text-muted-foreground mb-1">ประเภท</label>
             <select value={form.type} onChange={(e) => set("type", e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="BUY">BUY</option>
               <option value="SELL">SELL</option>
             </select>
@@ -118,42 +118,42 @@ function EditModal({
 
           {/* Coin */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Coin <span className="text-red-400">*</span></label>
+            <label className="block text-xs text-muted-foreground mb-1">Coin <span className="text-red-400">*</span></label>
             <input type="text" value={form.coinSymbol}
               onChange={(e) => set("coinSymbol", e.target.value.toUpperCase())}
               placeholder="BTC"
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase" />
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase" />
           </div>
 
           {/* Amount */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">จำนวน Crypto</label>
+            <label className="block text-xs text-muted-foreground mb-1">จำนวน Crypto</label>
             <input type="number" step="any" value={form.amount}
               onChange={(e) => set("amount", e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
 
           {/* Price */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">ราคาต่อหน่วย</label>
+            <label className="block text-xs text-muted-foreground mb-1">ราคาต่อหน่วย</label>
             <input type="number" step="any" value={form.price}
               onChange={(e) => set("price", e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
 
           {/* Total Value */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">มูลค่ารวม</label>
+            <label className="block text-xs text-muted-foreground mb-1">มูลค่ารวม</label>
             <input type="number" step="any" value={form.totalValue}
               onChange={(e) => set("totalValue", e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
 
           {/* Currency */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">สกุลเงิน</label>
+            <label className="block text-xs text-muted-foreground mb-1">สกุลเงิน</label>
             <select value={form.currency} onChange={(e) => set("currency", e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="THB">THB</option>
               <option value="USDT">USDT</option>
               <option value="USD">USD</option>
@@ -162,9 +162,9 @@ function EditModal({
 
           {/* Exchange */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Exchange</label>
+            <label className="block text-xs text-muted-foreground mb-1">Exchange</label>
             <select value={form.exchange} onChange={(e) => set("exchange", e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="bitkub">Bitkub</option>
               <option value="binanceth">Binance TH</option>
               <option value="binance">Binance</option>
@@ -173,10 +173,10 @@ function EditModal({
 
           {/* Date */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">วันที่/เวลา</label>
+            <label className="block text-xs text-muted-foreground mb-1">วันที่/เวลา</label>
             <input type="datetime-local" value={form.txDate}
               onChange={(e) => set("txDate", e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full bg-muted border border-border text-foreground px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
 
@@ -188,11 +188,11 @@ function EditModal({
         {/* Footer */}
         <div className="flex gap-3 px-6 pb-5">
           <button onClick={handleSave} disabled={saving}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-2">
+            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-foreground py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-2">
             {saving ? <><Loader2 className="h-4 w-4 animate-spin" />กำลังบันทึก...</> : <><Check className="h-4 w-4" />บันทึก</>}
           </button>
           <button onClick={onClose} disabled={saving}
-            className="px-5 py-2.5 border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white rounded-xl text-sm transition-colors">
+            className="px-5 py-2.5 border border-border hover:border-border text-muted-foreground hover:text-foreground rounded-xl text-sm transition-colors">
             ยกเลิก
           </button>
         </div>
@@ -264,7 +264,7 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
 
   if (transactions.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-muted-foreground">
         <TrendingUp className="h-10 w-10 mx-auto mb-3 opacity-30" />
         <p>No transactions yet</p>
         <p className="text-sm mt-1">Upload your first slip to get started</p>
@@ -285,7 +285,7 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800">
+            <tr className="border-b border-border">
               {[
                 { key: "txDate" as SortKey, label: "Date" },
                 { key: "type" as SortKey, label: "Type" },
@@ -297,7 +297,7 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
                 { key: null, label: "" },
               ].map((col, idx) => (
                 <th key={idx}
-                  className={`text-left py-3 px-4 text-gray-400 font-medium ${col.key ? "cursor-pointer hover:text-white" : ""}`}
+                  className={`text-left py-3 px-4 text-muted-foreground font-medium ${col.key ? "cursor-pointer hover:text-foreground" : ""}`}
                   onClick={() => col.key && handleSort(col.key)}>
                   <div className="flex items-center gap-1">
                     {col.label}
@@ -307,10 +307,10 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
+          <tbody className="divide-y divide-border">
             {sorted.map((tx) => (
-              <tr key={tx.id} className="hover:bg-gray-800/50 transition-colors group">
-                <td className="py-3 px-4 text-gray-300 whitespace-nowrap">
+              <tr key={tx.id} className="hover:bg-muted/50 transition-colors group">
+                <td className="py-3 px-4 text-foreground whitespace-nowrap">
                   {format(new Date(tx.txDate), "dd MMM yyyy HH:mm")}
                 </td>
                 <td className="py-3 px-4">
@@ -322,20 +322,20 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
                   </span>
                 </td>
                 <td className="py-3 px-4">
-                  <div className="font-medium text-white">{tx.coin.symbol}</div>
-                  <div className="text-xs text-gray-500">{tx.coin.name}</div>
+                  <div className="font-medium text-foreground">{tx.coin.symbol}</div>
+                  <div className="text-xs text-muted-foreground">{tx.coin.name}</div>
                 </td>
-                <td className="py-3 px-4 text-gray-300 font-mono">
+                <td className="py-3 px-4 text-foreground font-mono">
                   {tx.amount.toFixed(8).replace(/\.?0+$/, "")}
                 </td>
-                <td className="py-3 px-4 text-gray-300">
+                <td className="py-3 px-4 text-foreground">
                   {formatCurrency(tx.price, tx.currency)}
                 </td>
-                <td className="py-3 px-4 text-white font-medium">
+                <td className="py-3 px-4 text-foreground font-medium">
                   {formatCurrency(tx.totalValue, tx.currency)}
                 </td>
                 <td className="py-3 px-4">
-                  <span className="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded">
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                     {exchangeLabels[tx.exchange] || tx.exchange}
                   </span>
                 </td>
@@ -343,17 +343,17 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {tx.slipImageUrl && (
                       <a href={tx.slipImageUrl} target="_blank" rel="noopener noreferrer"
-                        className="text-gray-500 hover:text-blue-400 transition-colors">
+                        className="text-muted-foreground hover:text-blue-400 transition-colors">
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     )}
                     <button onClick={() => setEditingTx(tx)}
-                      className="text-gray-500 hover:text-yellow-400 transition-colors">
+                      className="text-muted-foreground hover:text-yellow-400 transition-colors">
                       <Pencil className="h-4 w-4" />
                     </button>
                     {onDelete && (
                       <button onClick={() => handleDelete(tx.id)} disabled={deletingId === tx.id}
-                        className="text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50">
+                        className="text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-50">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     )}

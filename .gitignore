@@ -7,3 +7,4 @@ dist/
 .DS_Store
 *.log
 public/uploads/
+tsconfig.tsbuildinfo

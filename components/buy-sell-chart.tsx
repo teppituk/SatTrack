@@ -234,7 +234,7 @@ export function BuySellChart({ transactions, coinSymbol, priceHistory }: BuySell
   return (
     <div className="relative">
       {transactions.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-500">
+        <div className="absolute inset-0 flex items-center justify-center z-10 text-muted-foreground">
           <div className="text-center">
             <p>No transactions for {coinSymbol}</p>
             <p className="text-sm mt-1">Upload slips to see your buy/sell points</p>

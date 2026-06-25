@@ -168,11 +168,11 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
     return (
       <div className="text-center py-12">
         <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-white mb-2">บันทึกธุรกรรมสำเร็จ!</h3>
-        <p className="text-gray-400 mb-6">เพิ่มรายการ BTC เข้าพอร์ตโฟลิโอของคุณแล้ว</p>
+        <h3 className="text-xl font-semibold text-foreground mb-2">บันทึกธุรกรรมสำเร็จ!</h3>
+        <p className="text-muted-foreground mb-6">เพิ่มรายการ BTC เข้าพอร์ตโฟลิโอของคุณแล้ว</p>
         <button
           onClick={reset}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl transition-colors"
+          className="bg-blue-600 hover:bg-blue-700 text-foreground px-6 py-2.5 rounded-xl transition-colors"
         >
           เพิ่มรายการอีก
         </button>
@@ -189,12 +189,12 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
       {/* Popup ยืนยันก่อนบันทึก */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-              <h2 className="text-lg font-semibold text-white">ยืนยันการบันทึกรายการ</h2>
+          <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">ยืนยันการบันทึกรายการ</h2>
               <button
                 onClick={() => setShowConfirm(false)}
-                className="text-gray-500 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -202,7 +202,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
 
             <div className="p-6 space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-400">ประเภท</span>
+                <span className="text-muted-foreground">ประเภท</span>
                 <span
                   className={`font-semibold ${
                     formData.type === "BUY" ? "text-green-400" : "text-red-400"
@@ -212,38 +212,38 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">เหรียญ</span>
-                <span className="text-white font-medium">₿ BTC</span>
+                <span className="text-muted-foreground">เหรียญ</span>
+                <span className="text-foreground font-medium">₿ BTC</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">จำนวน</span>
-                <span className="text-white font-mono">{fmtNum(formData.amount)} BTC</span>
+                <span className="text-muted-foreground">จำนวน</span>
+                <span className="text-foreground font-mono">{fmtNum(formData.amount)} BTC</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">ราคาต่อหน่วย</span>
-                <span className="text-white">
+                <span className="text-muted-foreground">ราคาต่อหน่วย</span>
+                <span className="text-foreground">
                   {fmtNum(formData.price)} {formData.currency}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">มูลค่ารวม</span>
-                <span className="text-white font-semibold">
+                <span className="text-muted-foreground">มูลค่ารวม</span>
+                <span className="text-foreground font-semibold">
                   {fmtNum(formData.totalValue)} {formData.currency}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Exchange</span>
-                <span className="text-white">{exchangeName}</span>
+                <span className="text-muted-foreground">Exchange</span>
+                <span className="text-foreground">{exchangeName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">วันที่</span>
-                <span className="text-white">
+                <span className="text-muted-foreground">วันที่</span>
+                <span className="text-foreground">
                   {format(new Date(formData.txDate), "dd/MM/yyyy HH:mm")}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">รูปสลิป</span>
-                <span className={slipFile ? "text-green-400" : "text-gray-500"}>
+                <span className="text-muted-foreground">รูปสลิป</span>
+                <span className={slipFile ? "text-green-400" : "text-muted-foreground"}>
                   {slipFile ? "แนบแล้ว" : "ไม่แนบ"}
                 </span>
               </div>
@@ -253,14 +253,14 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
               <button
                 onClick={() => setShowConfirm(false)}
                 disabled={saving}
-                className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-xl transition-colors"
+                className="flex-1 px-4 py-2.5 bg-muted hover:bg-accent text-foreground text-sm rounded-xl transition-colors"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-foreground text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {saving ? (
                   <>
@@ -288,11 +288,11 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Exchange */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Exchange</label>
+          <label className="block text-xs text-muted-foreground mb-1">Exchange</label>
           <select
             value={formData.exchange}
             onChange={(e) => updateForm("exchange", e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {exchanges.length === 0 ? (
               <option value={formData.exchange}>{formData.exchange}</option>
@@ -308,11 +308,11 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
 
         {/* Type */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Type</label>
+          <label className="block text-xs text-muted-foreground mb-1">Type</label>
           <select
             value={formData.type}
             onChange={(e) => updateForm("type", e.target.value as "BUY" | "SELL")}
-            className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="BUY">BUY</option>
             <option value="SELL">SELL</option>
@@ -321,31 +321,30 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
 
         {/* Coin (locked to BTC) */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Coin</label>
-          <div className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl flex items-center gap-2 cursor-not-allowed">
+          <label className="block text-xs text-muted-foreground mb-1">Coin</label>
+          <div className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl flex items-center gap-2 cursor-not-allowed">
             <span className="text-orange-400 text-lg">₿</span>
             <span className="font-medium">BTC</span>
-            <span className="text-xs text-gray-500">(Bitcoin)</span>
+            <span className="text-xs text-muted-foreground">(Bitcoin)</span>
           </div>
         </div>
 
         {/* Currency */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Currency</label>
+          <label className="block text-xs text-muted-foreground mb-1">Currency</label>
           <select
             value={formData.currency}
             onChange={(e) => updateForm("currency", e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="THB">THB</option>
-            <option value="USDT">USDT</option>
             <option value="USD">USD</option>
           </select>
         </div>
 
         {/* Amount */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">จำนวน BTC</label>
+          <label className="block text-xs text-muted-foreground mb-1">จำนวน BTC</label>
           <input
             type="text"
             inputMode="decimal"
@@ -357,13 +356,13 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
               if (!isNaN(v)) updateForm("amount", v);
             }}
             placeholder="0.000000001"
-            className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Price */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">ราคาต่อหน่วย</label>
+          <label className="block text-xs text-muted-foreground mb-1">ราคาต่อหน่วย</label>
           <input
             type="text"
             inputMode="decimal"
@@ -375,13 +374,13 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
               if (!isNaN(v)) updateForm("price", v);
             }}
             placeholder="2000000"
-            className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Total Value */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">มูลค่ารวม</label>
+          <label className="block text-xs text-muted-foreground mb-1">มูลค่ารวม</label>
           <input
             type="text"
             inputMode="decimal"
@@ -393,26 +392,26 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
               if (!isNaN(v)) updateForm("totalValue", v);
             }}
             placeholder="2000"
-            className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Transaction Date */}
         <div>
-          <label className="block text-xs text-gray-400 mb-1">วันที่ธุรกรรม</label>
+          <label className="block text-xs text-muted-foreground mb-1">วันที่ธุรกรรม</label>
           <input
             type="datetime-local"
             value={formData.txDate ? format(new Date(formData.txDate), "yyyy-MM-dd'T'HH:mm") : ""}
             onChange={(e) => updateForm("txDate", new Date(e.target.value).toISOString())}
-            className="w-full bg-gray-800 border border-gray-700 text-white px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* รูปสลิป (optional) */}
       <div>
-        <label className="block text-xs text-gray-400 mb-1">
-          รูปสลิป <span className="text-gray-600">(ไม่บังคับ — เก็บไว้เป็นหลักฐานการซื้อ)</span>
+        <label className="block text-xs text-muted-foreground mb-1">
+          รูปสลิป <span className="text-muted-foreground">(ไม่บังคับ — เก็บไว้เป็นหลักฐานการซื้อ)</span>
         </label>
         <input
           ref={fileInputRef}
@@ -422,23 +421,23 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
           className="hidden"
         />
         {slipPreview ? (
-          <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-xl p-3">
+          <div className="flex items-center gap-3 bg-muted border border-border rounded-xl p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={slipPreview}
               alt="Slip preview"
-              className="h-16 w-16 object-cover rounded-lg border border-gray-700"
+              className="h-16 w-16 object-cover rounded-lg border border-border"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-white truncate">{slipFile?.name}</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-foreground truncate">{slipFile?.name}</p>
+              <p className="text-xs text-muted-foreground">
                 {slipFile ? `${(slipFile.size / 1024).toFixed(0)} KB` : ""}
               </p>
             </div>
             <button
               type="button"
               onClick={removeFile}
-              className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-950/30 transition-colors"
               title="ลบรูป"
             >
               <X className="h-4 w-4" />
@@ -448,11 +447,11 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-700 hover:border-gray-500 hover:bg-gray-800/30 text-gray-400 rounded-xl py-4 transition-colors"
+            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-border hover:bg-muted/30 text-muted-foreground rounded-xl py-4 transition-colors"
           >
             <Upload className="h-4 w-4" />
             <span className="text-sm">แนบรูปสลิป (JPG, PNG, WebP — สูงสุด 10MB)</span>
-            <ImageIcon className="h-4 w-4 text-gray-600" />
+            <ImageIcon className="h-4 w-4 text-muted-foreground" />
           </button>
         )}
       </div>
@@ -468,7 +467,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
         <button
           onClick={handleConfirmClick}
           disabled={saving}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-foreground py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
         >
           {saving ? (
             <>
@@ -485,7 +484,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
         <button
           onClick={reset}
           disabled={saving}
-          className="px-6 py-3 border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white rounded-xl transition-colors"
+          className="px-6 py-3 border border-border hover:border-border text-muted-foreground hover:text-foreground rounded-xl transition-colors"
         >
           ล้างข้อมูล
         </button>

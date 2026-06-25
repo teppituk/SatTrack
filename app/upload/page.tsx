@@ -38,13 +38,13 @@ export default function UploadPage() {
             <div className="h-10 w-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
               <Bitcoin className="h-5 w-5 text-orange-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white">{t("upload.title")}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("upload.title")}</h1>
           </div>
-          <p className="text-gray-400">{t("upload.subtitle")}</p>
+          <p className="text-muted-foreground">{t("upload.subtitle")}</p>
         </div>
 
         {/* Input Form */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <SlipUploadForm
             onSuccess={() => {
               // Could show a toast notification here

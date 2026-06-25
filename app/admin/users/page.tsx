@@ -27,8 +27,8 @@ function OnlineBadge({ lastSeenAt }: { lastSeenAt: string | null }) {
   const isOnline = lastSeenAt != null && Date.now() - new Date(lastSeenAt).getTime() < 5 * 60 * 1000;
   return (
     <div className="flex items-center gap-1.5">
-      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? "bg-green-400" : "bg-gray-600"}`} />
-      <span className={`text-xs ${isOnline ? "text-green-400" : "text-gray-500"}`}>
+      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? "bg-green-400" : "bg-muted"}`} />
+      <span className={`text-xs ${isOnline ? "text-green-400" : "text-muted-foreground"}`}>
         {isOnline ? "Online" : "Offline"}
       </span>
     </div>
@@ -119,8 +119,8 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">User Management</h1>
-        <p className="text-gray-400 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           {total} user{total !== 1 ? "s" : ""} total
         </p>
       </div>
@@ -129,18 +129,18 @@ export default function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row gap-3">
         <form onSubmit={handleSearch} className="flex gap-2 flex-1">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search by email..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-muted border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-purple-500"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-foreground text-sm rounded-lg transition-colors"
           >
             Search
           </button>
@@ -148,7 +148,7 @@ export default function AdminUsersPage() {
             <button
               type="button"
               onClick={() => { setSearch(""); setSearchInput(""); setPage(1); }}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+              className="px-4 py-2 bg-accent hover:bg-muted text-foreground text-sm rounded-lg transition-colors"
             >
               Clear
             </button>
@@ -159,7 +159,7 @@ export default function AdminUsersPage() {
           <select
             value={roleFilter}
             onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
+            className="bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-purple-500"
           >
             <option value="ALL">All Roles</option>
             {roles.map((r) => (
@@ -170,7 +170,7 @@ export default function AdminUsersPage() {
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as StatusFilter); setPage(1); }}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
+            className="bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-purple-500"
           >
             <option value="ALL">All Status</option>
             <option value="ACTIVE">Active</option>
@@ -186,11 +186,11 @@ export default function AdminUsersPage() {
       )}
 
       {/* Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-gray-500 text-xs border-b border-gray-800">
+              <tr className="text-muted-foreground text-xs border-b border-border">
                 <th className="text-left px-5 py-3">Email</th>
                 <th className="text-left px-5 py-3">Name</th>
                 <th className="text-left px-5 py-3">Online</th>
@@ -205,13 +205,13 @@ export default function AdminUsersPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={9} className="px-5 py-10 text-center text-muted-foreground">
                     Loading...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={9} className="px-5 py-10 text-center text-muted-foreground">
                     No users found
                   </td>
                 </tr>
@@ -221,14 +221,14 @@ export default function AdminUsersPage() {
                   const isUpdating = updating === user.id;
 
                   return (
-                    <tr key={user.id} className="border-t border-gray-800 hover:bg-gray-800/40">
-                      <td className="px-5 py-3 text-white">
+                    <tr key={user.id} className="border-t border-border hover:bg-muted/40">
+                      <td className="px-5 py-3 text-foreground">
                         <span className="truncate max-w-[200px] block">{user.email}</span>
                         {isSelf && (
                           <span className="text-xs text-purple-400">(you)</span>
                         )}
                       </td>
-                      <td className="px-5 py-3 text-gray-300">{user.name ?? "—"}</td>
+                      <td className="px-5 py-3 text-foreground">{user.name ?? "—"}</td>
                       <td className="px-5 py-3">
                         <OnlineBadge lastSeenAt={user.lastSeenAt} />
                       </td>
@@ -237,7 +237,7 @@ export default function AdminUsersPage() {
                           value={user.role}
                           disabled={isUpdating || isSelf}
                           onChange={(e) => updateUser(user.id, { role: e.target.value })}
-                          className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-muted border border-border rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {roles.length > 0 ? (
                             roles.map((r) => (
@@ -262,14 +262,14 @@ export default function AdminUsersPage() {
                         </button>
                       </td>
                       <td className="px-5 py-3">
-                        <span className="px-2 py-0.5 rounded text-xs bg-gray-800 text-gray-300 capitalize">
+                        <span className="px-2 py-0.5 rounded text-xs bg-muted text-foreground capitalize">
                           {user.plan}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-gray-400 text-center">
+                      <td className="px-5 py-3 text-muted-foreground text-center">
                         {user._count.transactions}
                       </td>
-                      <td className="px-5 py-3 text-gray-400">
+                      <td className="px-5 py-3 text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-5 py-3">
@@ -297,22 +297,22 @@ export default function AdminUsersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-5 py-3 border-t border-gray-800 flex items-center justify-between">
-            <p className="text-xs text-gray-500">
+          <div className="px-5 py-3 border-t border-border flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
               Page {page} of {totalPages}
             </p>
             <div className="flex gap-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="p-1.5 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                className="p-1.5 rounded bg-muted text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="p-1.5 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                className="p-1.5 rounded bg-muted text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

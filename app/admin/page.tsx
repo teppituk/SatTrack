@@ -54,15 +54,15 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <div className="bg-card border border-border rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-gray-400">{label}</p>
+        <p className="text-sm text-muted-foreground">{label}</p>
         <div className={`p-2 rounded-lg ${color}`}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
 }
@@ -101,7 +101,7 @@ export default function AdminOverviewPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-400">Loading...</div>
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -112,8 +112,8 @@ export default function AdminOverviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Admin Overview</h1>
-        <p className="text-gray-400 text-sm mt-1">System-wide statistics and activity</p>
+        <h1 className="text-2xl font-bold text-foreground">Admin Overview</h1>
+        <p className="text-muted-foreground text-sm mt-1">System-wide statistics and activity</p>
       </div>
 
       {/* Stats Grid */}
@@ -161,14 +161,14 @@ export default function AdminOverviewPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Recent Users */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl">
-          <div className="px-5 py-4 border-b border-gray-800">
-            <h2 className="text-base font-semibold text-white">Recent Users</h2>
+        <div className="bg-card border border-border rounded-xl">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-base font-semibold text-foreground">Recent Users</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-gray-500 text-xs">
+                <tr className="text-muted-foreground text-xs">
                   <th className="text-left px-5 py-3">Email</th>
                   <th className="text-left px-5 py-3">Role</th>
                   <th className="text-left px-5 py-3">Status</th>
@@ -178,14 +178,14 @@ export default function AdminOverviewPage() {
               <tbody>
                 {recentUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-5 py-6 text-center text-gray-500">
+                    <td colSpan={4} className="px-5 py-6 text-center text-muted-foreground">
                       No users found
                     </td>
                   </tr>
                 ) : (
                   recentUsers.map((u) => (
-                    <tr key={u.id} className="border-t border-gray-800 hover:bg-gray-800/40">
-                      <td className="px-5 py-3 text-white truncate max-w-[180px]">{u.email}</td>
+                    <tr key={u.id} className="border-t border-border hover:bg-muted/40">
+                      <td className="px-5 py-3 text-foreground truncate max-w-[180px]">{u.email}</td>
                       <td className="px-5 py-3">
                         <span
                           className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -208,7 +208,7 @@ export default function AdminOverviewPage() {
                           {u.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-gray-400">
+                      <td className="px-5 py-3 text-muted-foreground">
                         {new Date(u.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
@@ -220,14 +220,14 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Recent Transactions */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl">
-          <div className="px-5 py-4 border-b border-gray-800">
-            <h2 className="text-base font-semibold text-white">Recent Transactions</h2>
+        <div className="bg-card border border-border rounded-xl">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-base font-semibold text-foreground">Recent Transactions</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-gray-500 text-xs">
+                <tr className="text-muted-foreground text-xs">
                   <th className="text-left px-5 py-3">User</th>
                   <th className="text-left px-5 py-3">Coin</th>
                   <th className="text-left px-5 py-3">Type</th>
@@ -238,17 +238,17 @@ export default function AdminOverviewPage() {
               <tbody>
                 {recentTx.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-6 text-center text-gray-500">
+                    <td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">
                       No transactions found
                     </td>
                   </tr>
                 ) : (
                   recentTx.map((tx) => (
-                    <tr key={tx.id} className="border-t border-gray-800 hover:bg-gray-800/40">
-                      <td className="px-5 py-3 text-white truncate max-w-[140px]">
+                    <tr key={tx.id} className="border-t border-border hover:bg-muted/40">
+                      <td className="px-5 py-3 text-foreground truncate max-w-[140px]">
                         {tx.user?.email ?? "—"}
                       </td>
-                      <td className="px-5 py-3 text-gray-300">{tx.coin?.symbol ?? "—"}</td>
+                      <td className="px-5 py-3 text-foreground">{tx.coin?.symbol ?? "—"}</td>
                       <td className="px-5 py-3">
                         <span
                           className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -260,10 +260,10 @@ export default function AdminOverviewPage() {
                           {tx.type}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-gray-300">
+                      <td className="px-5 py-3 text-foreground">
                         {tx.totalValue.toLocaleString()} {tx.currency}
                       </td>
-                      <td className="px-5 py-3 text-gray-400">
+                      <td className="px-5 py-3 text-muted-foreground">
                         {new Date(tx.txDate).toLocaleDateString()}
                       </td>
                     </tr>

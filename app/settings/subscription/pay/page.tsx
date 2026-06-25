@@ -37,24 +37,24 @@ function MockPayContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl p-8">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="h-12 w-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
             <Bitcoin className="h-6 w-6 text-orange-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Lightning Checkout</h1>
-            <p className="text-gray-400 text-sm">{label}</p>
+            <h1 className="text-xl font-bold text-foreground">Lightning Checkout</h1>
+            <p className="text-muted-foreground text-sm">{label}</p>
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-xl p-5 mb-6 text-center">
-          <p className="text-gray-400 text-sm mb-1">จำนวนที่ต้องชำระ</p>
-          <p className="text-3xl font-bold text-white">
+        <div className="bg-muted rounded-xl p-5 mb-6 text-center">
+          <p className="text-muted-foreground text-sm mb-1">จำนวนที่ต้องชำระ</p>
+          <p className="text-3xl font-bold text-foreground">
             {Number(amount).toLocaleString()} <span className="text-lg text-orange-400">sats</span>
           </p>
-          <p className="text-xs text-gray-500 mt-2 break-all">invoice: {invoiceId}</p>
+          <p className="text-xs text-muted-foreground mt-2 break-all">invoice: {invoiceId}</p>
         </div>
 
         <div className="flex items-start gap-2 bg-yellow-950/30 border border-yellow-800/40 rounded-lg p-3 mb-6">
@@ -90,7 +90,7 @@ function MockPayContent() {
         <button
           onClick={() => router.push("/settings/subscription")}
           disabled={paying}
-          className="w-full mt-3 text-gray-400 hover:text-white py-2 text-sm transition-colors"
+          className="w-full mt-3 text-muted-foreground hover:text-foreground py-2 text-sm transition-colors"
         >
           ยกเลิก
         </button>

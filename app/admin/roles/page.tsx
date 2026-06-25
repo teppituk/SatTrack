@@ -54,7 +54,7 @@ function PermissionToggle({
       disabled={disabled}
       onClick={() => onChange(!enabled)}
       className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${
-        enabled ? "bg-purple-600" : "bg-gray-700"
+        enabled ? "bg-purple-600" : "bg-accent"
       } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
     >
       <span
@@ -120,12 +120,12 @@ function RoleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md mx-4 shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <h2 className="text-lg font-semibold text-white">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md mx-4 shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">
             {isEdit ? "Edit Role" : "Create New Role"}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -133,37 +133,37 @@ function RoleModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {!isEdit && (
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Role Name (ชื่อระบบ)</label>
+              <label className="block text-sm text-muted-foreground mb-1.5">Role Name (ชื่อระบบ)</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value.toUpperCase().replace(/\s+/g, "_"))}
                 placeholder="เช่น VIEWER, ANALYST"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-purple-500"
               />
-              <p className="text-xs text-gray-600 mt-1">ตัวพิมพ์ใหญ่, ไม่มีช่องว่าง (ใช้ _ แทน)</p>
+              <p className="text-xs text-muted-foreground mt-1">ตัวพิมพ์ใหญ่, ไม่มีช่องว่าง (ใช้ _ แทน)</p>
             </div>
           )}
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Label (ชื่อแสดงผล)</label>
+            <label className="block text-sm text-muted-foreground mb-1.5">Label (ชื่อแสดงผล)</label>
             <input
               type="text"
               required
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="เช่น ผู้ดูอย่างเดียว"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-purple-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-3">เมนูที่เข้าถึงได้</label>
+            <label className="block text-sm text-muted-foreground mb-3">เมนูที่เข้าถึงได้</label>
             <div className="space-y-3">
               {MENU_ITEMS.map((item) => (
                 <div key={item.key} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">{item.label}</span>
+                  <span className="text-sm text-foreground">{item.label}</span>
                   <PermissionToggle
                     enabled={permissions[item.key]}
                     disabled={isEdit && role?.isSystem}
@@ -189,14 +189,14 @@ function RoleModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-muted hover:bg-accent text-foreground text-sm rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-foreground text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {saving ? (
                 "Saving..."
@@ -271,12 +271,12 @@ export default function AdminRolesPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Role Management</h1>
-          <p className="text-gray-400 text-sm mt-1">สร้างและกำหนดสิทธิ์การเข้าถึงเมนูสำหรับแต่ละ role</p>
+          <h1 className="text-2xl font-bold text-foreground">Role Management</h1>
+          <p className="text-muted-foreground text-sm mt-1">สร้างและกำหนดสิทธิ์การเข้าถึงเมนูสำหรับแต่ละ role</p>
         </div>
         <button
           onClick={() => setModal({ open: true, role: null })}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-foreground text-sm rounded-lg transition-colors"
         >
           <Plus className="h-4 w-4" />
           สร้าง Role ใหม่
@@ -284,25 +284,25 @@ export default function AdminRolesPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-500">Loading...</div>
+        <div className="text-center py-16 text-muted-foreground">Loading...</div>
       ) : (
         <div className="grid gap-4">
           {roles.map((role) => (
             <div
               key={role.id}
-              className="bg-gray-900 border border-gray-800 rounded-xl p-5"
+              className="bg-card border border-border rounded-xl p-5"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {role.isSystem ? (
                     <ShieldCheck className="h-5 w-5 text-purple-400 flex-shrink-0" />
                   ) : (
-                    <Shield className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                    <Shield className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   )}
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white">{role.label}</span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">
+                      <span className="font-semibold text-foreground">{role.label}</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground font-mono">
                         {role.name}
                       </span>
                       {role.isSystem && (
@@ -317,7 +317,7 @@ export default function AdminRolesPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setModal({ open: true, role })}
-                    className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     title="Edit role"
                   >
                     <Pencil className="h-4 w-4" />
@@ -326,7 +326,7 @@ export default function AdminRolesPage() {
                     <button
                       onClick={() => deleteRole(role)}
                       disabled={deleting === role.id}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-950/30 transition-colors disabled:opacity-40"
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-950/30 transition-colors disabled:opacity-40"
                       title="Delete role"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -343,7 +343,7 @@ export default function AdminRolesPage() {
                     className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                       role.permissions[item.key]
                         ? "bg-green-600/15 text-green-400 border border-green-600/30"
-                        : "bg-gray-800 text-gray-600 border border-gray-700 line-through"
+                        : "bg-muted text-muted-foreground border border-border line-through"
                     }`}
                   >
                     {item.label}
@@ -354,7 +354,7 @@ export default function AdminRolesPage() {
           ))}
 
           {roles.length === 0 && (
-            <div className="text-center py-16 text-gray-500">
+            <div className="text-center py-16 text-muted-foreground">
               ยังไม่มี role — กดปุ่ม &quot;สร้าง Role ใหม่&quot; ด้านบน
             </div>
           )}

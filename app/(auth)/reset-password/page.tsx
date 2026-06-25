@@ -83,27 +83,27 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingUp className="h-8 w-8 text-blue-500" />
-            <span className="text-2xl font-bold text-white">StackSat</span>
+            <span className="text-2xl font-bold text-foreground">StackSat</span>
           </div>
-          <p className="text-gray-400">
+          <p className="text-muted-foreground">
             {token ? "Set your new password" : "Reset your password"}
           </p>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
+        <div className="bg-card border border-border rounded-2xl p-8">
           {success ? (
             <div className="text-center py-4">
               <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 {token ? "Password Reset!" : "Check Your Email"}
               </h3>
-              <p className="text-gray-400 text-sm mb-6">
+              <p className="text-muted-foreground text-sm mb-6">
                 {token
                   ? "Your password has been updated. You can now sign in with your new password."
                   : "We've sent a password reset link to your email. Check your inbox (and spam folder)."}
@@ -128,11 +128,11 @@ function ResetPasswordForm() {
                 // New password form
                 <form onSubmit={handleSetNewPassword} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       New Password
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="password"
                         value={password}
@@ -140,24 +140,24 @@ function ResetPasswordForm() {
                         placeholder="Min 8 characters"
                         required
                         minLength={8}
-                        className="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-muted border border-border text-foreground placeholder-muted-foreground pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Confirm New Password
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••••"
                         required
-                        className="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-muted border border-border text-foreground placeholder-muted-foreground pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -165,7 +165,7 @@ function ResetPasswordForm() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-foreground py-3 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
                       <>
@@ -180,24 +180,24 @@ function ResetPasswordForm() {
               ) : (
                 // Request reset form
                 <form onSubmit={handleRequestReset} className="space-y-4">
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-muted-foreground text-sm mb-4">
                     Enter your email address and we&apos;ll send you a link to reset
                     your password.
                   </p>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Email Address
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
                         required
-                        className="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-muted border border-border text-foreground placeholder-muted-foreground pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -205,7 +205,7 @@ function ResetPasswordForm() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-foreground py-3 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
                       <>
@@ -219,7 +219,7 @@ function ResetPasswordForm() {
                 </form>
               )}
 
-              <p className="text-center text-gray-500 text-sm mt-6">
+              <p className="text-center text-muted-foreground text-sm mt-6">
                 Remember your password?{" "}
                 <Link href="/login" className="text-blue-400 hover:text-blue-300">
                   Back to Sign In

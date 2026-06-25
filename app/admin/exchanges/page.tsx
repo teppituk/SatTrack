@@ -23,7 +23,7 @@ function ActiveToggle({
       type="button"
       onClick={() => onChange(!enabled)}
       className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 cursor-pointer ${
-        enabled ? "bg-purple-600" : "bg-gray-700"
+        enabled ? "bg-purple-600" : "bg-accent"
       }`}
     >
       <span
@@ -70,37 +70,37 @@ function ExchangeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md mx-4 shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <h2 className="text-lg font-semibold text-white">เพิ่ม Exchange ใหม่</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md mx-4 shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">เพิ่ม Exchange ใหม่</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Code (ชื่อระบบ)</label>
+            <label className="block text-sm text-muted-foreground mb-1.5">Code (ชื่อระบบ)</label>
             <input
               type="text"
               required
               value={code}
               onChange={(e) => setCode(e.target.value.toLowerCase().replace(/\s+/g, ""))}
               placeholder="เช่น okx, bybit, kraken"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-purple-500"
             />
-            <p className="text-xs text-gray-600 mt-1">ตัวพิมพ์เล็ก ไม่มีช่องว่าง (ใช้เก็บในธุรกรรม)</p>
+            <p className="text-xs text-muted-foreground mt-1">ตัวพิมพ์เล็ก ไม่มีช่องว่าง (ใช้เก็บในธุรกรรม)</p>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Name (ชื่อแสดงผล)</label>
+            <label className="block text-sm text-muted-foreground mb-1.5">Name (ชื่อแสดงผล)</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="เช่น OKX, Bybit"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-purple-500"
             />
           </div>
 
@@ -110,14 +110,14 @@ function ExchangeModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-muted hover:bg-accent text-foreground text-sm rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-foreground text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {saving ? "Saving..." : (<><Check className="h-4 w-4" />เพิ่ม Exchange</>)}
             </button>
@@ -197,14 +197,14 @@ export default function AdminExchangesPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Exchange Management</h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Exchange Management</h1>
+          <p className="text-muted-foreground text-sm mt-1">
             จัดการรายชื่อ Exchange ที่จะให้เลือกในหน้า Stack Bitcoin
           </p>
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-foreground text-sm rounded-lg transition-colors"
         >
           <Plus className="h-4 w-4" />
           เพิ่ม Exchange
@@ -212,24 +212,24 @@ export default function AdminExchangesPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-500">Loading...</div>
+        <div className="text-center py-16 text-muted-foreground">Loading...</div>
       ) : (
         <div className="grid gap-3">
           {exchanges.map((ex) => (
             <div
               key={ex.id}
-              className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center justify-between gap-4"
+              className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-4"
             >
               <div className="flex items-center gap-3">
                 <Building2 className="h-5 w-5 text-purple-400 flex-shrink-0" />
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">{ex.name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">
+                    <span className="font-semibold text-foreground">{ex.name}</span>
+                    <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground font-mono">
                       {ex.code}
                     </span>
                     {!ex.isActive && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400">
+                      <span className="text-xs px-2 py-0.5 rounded bg-accent text-muted-foreground">
                         ปิดใช้งาน
                       </span>
                     )}
@@ -239,7 +239,7 @@ export default function AdminExchangesPage() {
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">แสดงให้เลือก</span>
+                  <span className="text-xs text-muted-foreground">แสดงให้เลือก</span>
                   <ActiveToggle
                     enabled={ex.isActive}
                     onChange={(v) => toggleActive(ex, v)}
@@ -248,7 +248,7 @@ export default function AdminExchangesPage() {
                 <button
                   onClick={() => deleteExchange(ex)}
                   disabled={busy === ex.id}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-950/30 transition-colors disabled:opacity-40"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-950/30 transition-colors disabled:opacity-40"
                   title="Delete exchange"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -258,7 +258,7 @@ export default function AdminExchangesPage() {
           ))}
 
           {exchanges.length === 0 && (
-            <div className="text-center py-16 text-gray-500">
+            <div className="text-center py-16 text-muted-foreground">
               ยังไม่มี exchange — กดปุ่ม &quot;เพิ่ม Exchange&quot; ด้านบน
             </div>
           )}

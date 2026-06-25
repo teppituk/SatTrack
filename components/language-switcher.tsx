@@ -8,7 +8,7 @@ export function LanguageSwitcher() {
   return (
     <button
       onClick={() => setLocale(locale === "en" ? "th" : "en")}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-500 text-sm text-gray-300 hover:text-white transition-all"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-accent border border-border hover:border-border text-sm text-foreground hover:text-foreground transition-all"
       title={locale === "en" ? "Switch to Thai" : "เปลี่ยนเป็นภาษาอังกฤษ"}
     >
       {locale === "en" ? (

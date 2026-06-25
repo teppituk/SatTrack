@@ -116,8 +116,8 @@ function SubscriptionContent() {
             <Zap className="h-5 w-5 text-yellow-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Subscription</h1>
-            <p className="text-gray-400 text-sm">Manage your plan</p>
+            <h1 className="text-2xl font-bold text-foreground">Subscription</h1>
+            <p className="text-muted-foreground text-sm">Manage your plan</p>
           </div>
         </div>
 
@@ -138,15 +138,15 @@ function SubscriptionContent() {
         <div className={`border rounded-xl p-6 mb-6 ${
           isPaid
             ? "bg-yellow-950/20 border-yellow-700/50"
-            : "bg-gray-900 border-gray-800"
+            : "bg-card border-border"
         }`}>
           <div className="flex items-center gap-3 mb-2">
             {isPaid ? (
               <Crown className="h-6 w-6 text-yellow-400" />
             ) : (
-              <Zap className="h-6 w-6 text-gray-400" />
+              <Zap className="h-6 w-6 text-muted-foreground" />
             )}
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-foreground">
               {isPaid ? "Paid Plan Active" : "Free Plan"}
             </h2>
           </div>
@@ -165,9 +165,9 @@ function SubscriptionContent() {
               </span>
             </div>
           ) : (
-            <div className="space-y-1 text-gray-400 text-sm">
+            <div className="space-y-1 text-muted-foreground text-sm">
               <p>You are on the free plan with limited features.</p>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 Free: up to 50 transactions/month · Paid: unlimited + all features
               </p>
             </div>
@@ -185,23 +185,23 @@ function SubscriptionContent() {
         {/* Plans */}
         {!isPaid && (
           <div className="space-y-4 mb-8">
-            <h2 className="text-lg font-semibold text-white">Choose a Plan</h2>
+            <h2 className="text-lg font-semibold text-foreground">Choose a Plan</h2>
 
             {/* Monthly */}
-            <div className="bg-gray-900 border border-gray-700 hover:border-blue-600 rounded-xl p-6 transition-colors">
+            <div className="bg-card border border-border hover:border-blue-600 rounded-xl p-6 transition-colors">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold text-white">Monthly Plan</h3>
-                  <p className="text-gray-400 text-sm">Billed monthly</p>
+                  <h3 className="font-semibold text-foreground">Monthly Plan</h3>
+                  <p className="text-muted-foreground text-sm">Billed monthly</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-2xl font-bold text-foreground">
                     {data?.plans.monthly.amountSats?.toLocaleString()} sats
                   </p>
-                  <p className="text-gray-500 text-xs">≈ Lightning payment</p>
+                  <p className="text-muted-foreground text-xs">≈ Lightning payment</p>
                 </div>
               </div>
-              <ul className="space-y-2 mb-4 text-sm text-gray-300">
+              <ul className="space-y-2 mb-4 text-sm text-foreground">
                 {[
                   "Unlimited transactions",
                   "Full AI OCR access",
@@ -218,7 +218,7 @@ function SubscriptionContent() {
               <button
                 onClick={() => handleSubscribe("monthly")}
                 disabled={isPaying !== null}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-foreground py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {isPaying === "monthly" ? (
                   <>
@@ -235,23 +235,23 @@ function SubscriptionContent() {
             </div>
 
             {/* Annual */}
-            <div className="bg-gray-900 border border-yellow-700/50 rounded-xl p-6 relative overflow-hidden">
+            <div className="bg-card border border-yellow-700/50 rounded-xl p-6 relative overflow-hidden">
               <div className="absolute top-3 right-3 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
                 BEST VALUE
               </div>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold text-white">Annual Plan</h3>
-                  <p className="text-gray-400 text-sm">Save vs monthly</p>
+                  <h3 className="font-semibold text-foreground">Annual Plan</h3>
+                  <p className="text-muted-foreground text-sm">Save vs monthly</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-2xl font-bold text-foreground">
                     {data?.plans.annual.amountSats?.toLocaleString()} sats
                   </p>
-                  <p className="text-gray-500 text-xs">one-time payment</p>
+                  <p className="text-muted-foreground text-xs">one-time payment</p>
                 </div>
               </div>
-              <ul className="space-y-2 mb-4 text-sm text-gray-300">
+              <ul className="space-y-2 mb-4 text-sm text-foreground">
                 {[
                   "Everything in Monthly",
                   "12 months of access",
@@ -286,12 +286,12 @@ function SubscriptionContent() {
         )}
 
         {/* Payment Method Info */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
+        <div className="bg-card border border-border rounded-xl p-4 mb-6">
           <div className="flex items-center gap-3">
             <Bitcoin className="h-6 w-6 text-orange-400 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-white">Bitcoin Lightning Network</p>
-              <p className="text-gray-400">
+              <p className="font-medium text-foreground">Bitcoin Lightning Network</p>
+              <p className="text-muted-foreground">
                 Instant payments via BTCPay Server. Pay with any Lightning wallet
                 (Wallet of Satoshi, Phoenix, Muun, etc.)
               </p>
@@ -301,26 +301,26 @@ function SubscriptionContent() {
 
         {/* Payment History */}
         {data?.subscriptions && data.subscriptions.length > 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="font-semibold text-white mb-4">Payment History</h2>
+          <div className="bg-card border border-border rounded-xl p-6">
+            <h2 className="font-semibold text-foreground mb-4">Payment History</h2>
             <div className="space-y-3">
               {data.subscriptions.map((sub) => (
                 <div
                   key={sub.id}
-                  className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0"
+                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
                 >
                   <div>
-                    <p className="text-sm text-white font-mono">
+                    <p className="text-sm text-foreground font-mono">
                       {sub.invoiceId.slice(0, 16)}...
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       {sub.paidAt
                         ? new Date(sub.paidAt).toLocaleDateString()
                         : "Pending"}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-white">
+                    <p className="text-sm text-foreground">
                       {sub.amountSats.toLocaleString()} sats
                     </p>
                     <span
@@ -328,7 +328,7 @@ function SubscriptionContent() {
                         sub.status === "paid"
                           ? "bg-green-900/50 text-green-400"
                           : sub.status === "expired"
-                          ? "bg-gray-700 text-gray-400"
+                          ? "bg-accent text-muted-foreground"
                           : "bg-yellow-900/50 text-yellow-400"
                       }`}
                     >

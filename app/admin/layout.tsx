@@ -19,7 +19,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-background">
       <AdminNav />
       <main className="ml-64">
         <div className="p-6">{children}</div>

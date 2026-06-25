@@ -49,7 +49,7 @@ export default function SettingsPage() {
         userPlan.expiresAt ? ` · ${t("subscription.expiresAt")} ${new Date(userPlan.expiresAt).toLocaleDateString()}` : ""
       }`,
       badge: userPlan.plan === "paid" ? "PRO" : "FREE",
-      badgeColor: userPlan.plan === "paid" ? "bg-yellow-500/20 text-yellow-400" : "bg-gray-700 text-gray-400",
+      badgeColor: userPlan.plan === "paid" ? "bg-yellow-500/20 text-yellow-400" : "bg-accent text-muted-foreground",
     },
     {
       href: "/settings/share",
@@ -66,28 +66,28 @@ export default function SettingsPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-10 w-10 bg-gray-800 rounded-xl flex items-center justify-center">
-            <Settings className="h-5 w-5 text-gray-400" />
+          <div className="h-10 w-10 bg-muted rounded-xl flex items-center justify-center">
+            <Settings className="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">{t("settings.title")}</h1>
-            <p className="text-gray-400 text-sm">{t("settings.subtitle")}</p>
+            <h1 className="text-2xl font-bold text-foreground">{t("settings.title")}</h1>
+            <p className="text-muted-foreground text-sm">{t("settings.subtitle")}</p>
           </div>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-          <h2 className="text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
+        <div className="bg-card border border-border rounded-xl p-6 mb-6">
+          <h2 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
             <User className="h-4 w-4" />
             {t("settings.account")}
           </h2>
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+            <div className="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center text-foreground text-xl font-bold flex-shrink-0">
               {(session?.user?.name || session?.user?.email || "U")[0].toUpperCase()}
             </div>
             <div>
-              <p className="font-semibold text-white">{session?.user?.name || "User"}</p>
-              <p className="text-gray-400 text-sm">{session?.user?.email}</p>
+              <p className="font-semibold text-foreground">{session?.user?.name || "User"}</p>
+              <p className="text-muted-foreground text-sm">{session?.user?.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Shield className="h-3 w-3 text-green-400" />
                 <span className="text-xs text-green-400">{t("settings.accountVerified")}</span>
@@ -97,8 +97,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Language Selection */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-          <h2 className="text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
+        <div className="bg-card border border-border rounded-xl p-6 mb-6">
+          <h2 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
             <Globe className="h-4 w-4" />
             {t("settings.languageTitle")}
           </h2>
@@ -108,7 +108,7 @@ export default function SettingsPage() {
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border font-medium transition-all ${
                 locale === "th"
                   ? "bg-blue-600/20 border-blue-500 text-blue-400"
-                  : "bg-gray-800 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500"
+                  : "bg-muted border-border text-muted-foreground hover:text-foreground hover:border-border"
               }`}
             >
               <span>🇹🇭</span>
@@ -119,7 +119,7 @@ export default function SettingsPage() {
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border font-medium transition-all ${
                 locale === "en"
                   ? "bg-blue-600/20 border-blue-500 text-blue-400"
-                  : "bg-gray-800 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500"
+                  : "bg-muted border-border text-muted-foreground hover:text-foreground hover:border-border"
               }`}
             >
               <span>🇬🇧</span>
@@ -129,40 +129,40 @@ export default function SettingsPage() {
         </div>
 
         {/* Settings Links */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
-          <h2 className="text-sm font-medium text-gray-400 px-6 pt-4 pb-2 flex items-center gap-2">
+        <div className="bg-card border border-border rounded-xl overflow-hidden mb-6">
+          <h2 className="text-sm font-medium text-muted-foreground px-6 pt-4 pb-2 flex items-center gap-2">
             <Settings className="h-4 w-4" />
             {t("settings.features")}
           </h2>
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-border">
             {settingsLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex items-center gap-4 px-6 py-4 hover:bg-gray-800/50 transition-colors"
+                className="flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors"
               >
-                <div className="h-9 w-9 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                   {link.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-white">{link.title}</p>
+                    <p className="font-medium text-foreground">{link.title}</p>
                     {link.badge && (
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${link.badgeColor}`}>
                         {link.badge}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-400 truncate">{link.desc}</p>
+                  <p className="text-sm text-muted-foreground truncate">{link.desc}</p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-600" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Link>
             ))}
           </div>
         </div>
 
         {/* App Info */}
-        <div className="text-center text-gray-600 text-xs">
+        <div className="text-center text-muted-foreground text-xs">
           <p>{t("settings.appVersion")}</p>
           <p className="mt-1">{t("settings.builtWith")}</p>
         </div>

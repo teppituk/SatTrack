@@ -43,7 +43,7 @@ interface PortfolioSummary {
   lastUpdated: string;
 }
 
-type Currency = "THB" | "USDT";
+type Currency = "THB" | "USD";
 
 interface Transaction {
   id: string;
@@ -66,11 +66,12 @@ function formatCurrency(value: number, currency: Currency = "THB"): string {
       maximumFractionDigits: 2,
     }).format(value);
   }
-  // USDT — ไม่ใช่รหัสสกุลเงิน ISO มาตรฐาน จึง format เองแล้วต่อท้ายด้วย USDT
-  return `${new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
+  // USD
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     maximumFractionDigits: 2,
-  }).format(value)} USDT`;
+  }).format(value);
 }
 
 function StatCard({
@@ -89,17 +90,17 @@ function StatCard({
   positive?: boolean;
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <div className="bg-card border border-border rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-gray-400 text-sm">{title}</p>
-        <div className="text-gray-600">{icon}</div>
+        <p className="text-muted-foreground text-sm">{title}</p>
+        <div className="text-muted-foreground">{icon}</div>
       </div>
-      <p className="text-2xl font-bold text-white mb-1">{value}</p>
+      <p className="text-2xl font-bold text-foreground mb-1">{value}</p>
       {change && (
         <div className={`flex items-center gap-1 text-sm ${positive ? "text-green-400" : "text-red-400"}`}>
           {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
           <span>{change}</span>
-          {changePercent && <span className="text-gray-500">({changePercent})</span>}
+          {changePercent && <span className="text-muted-foreground">({changePercent})</span>}
         </div>
       )}
     </div>
@@ -187,33 +188,33 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white">{t("dashboard.title")}</h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-foreground">{t("dashboard.title")}</h1>
+            <p className="text-muted-foreground text-sm mt-1">
               {t("dashboard.welcomeBack")}, {session?.user?.name || session?.user?.email}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {/* ราคา Bitcoin ปัจจุบัน */}
-            <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2">
+            <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2">
               <Bitcoin className="h-5 w-5 text-orange-400" />
               <div className="leading-tight">
-                <p className="text-[11px] text-gray-500">{t("dashboard.btcPrice")}</p>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-[11px] text-muted-foreground">{t("dashboard.btcPrice")}</p>
+                <p className="text-sm font-semibold text-foreground">
                   {summary ? formatCurrency(summary.btcPrice, currency) : "—"}
                 </p>
               </div>
             </div>
 
-            {/* ปุ่มสลับสกุลเงิน THB / USDT */}
-            <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
-              {(["THB", "USDT"] as Currency[]).map((c) => (
+            {/* ปุ่มสลับสกุลเงิน THB / USD */}
+            <div className="flex bg-card border border-border rounded-xl p-1">
+              {(["THB", "USD"] as Currency[]).map((c) => (
                 <button
                   key={c}
                   onClick={() => setCurrency(c)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     currency === c
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-400 hover:text-white"
+                      ? "bg-blue-600 text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {c}
@@ -224,7 +225,7 @@ export default function DashboardPage() {
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-2 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-xl transition-all text-sm"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground border border-border hover:border-border px-4 py-2 rounded-xl transition-all text-sm"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
               {t("dashboard.refreshPrices")}
@@ -279,12 +280,12 @@ export default function DashboardPage() {
         {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-6 mb-8">
           {/* Allocation Chart */}
-          <div className="lg:col-span-1 bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">{t("dashboard.allocation")}</h2>
+          <div className="lg:col-span-1 bg-card border border-border rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">{t("dashboard.allocation")}</h2>
             {holdings.length > 0 ? (
               <PortfolioChart data={holdings} />
             ) : (
-              <div className="flex flex-col items-center justify-center h-48 text-gray-600">
+              <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
                 <Coins className="h-10 w-10 mb-2 opacity-30" />
                 <p className="text-sm">{t("dashboard.noHoldings")}</p>
                 <Link href="/upload" className="text-blue-400 text-sm mt-2 hover:underline">
@@ -295,13 +296,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Holdings Table */}
-          <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">{t("dashboard.holdings")}</h2>
+          <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">{t("dashboard.holdings")}</h2>
             {holdings.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-800 text-gray-400">
+                    <tr className="border-b border-border text-muted-foreground">
                       <th className="text-left py-2 px-2">{t("dashboard.coin")}</th>
                       <th className="text-right py-2 px-2">{t("dashboard.amount")}</th>
                       <th className="text-right py-2 px-2">{t("dashboard.avgPrice")}</th>
@@ -310,20 +311,20 @@ export default function DashboardPage() {
                       <th className="text-right py-2 px-2">{t("dashboard.alloc")}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
+                  <tbody className="divide-y divide-border">
                     {holdings.map((h) => (
-                      <tr key={h.symbol} className="hover:bg-gray-800/50">
+                      <tr key={h.symbol} className="hover:bg-muted/50">
                         <td className="py-3 px-2">
-                          <div className="font-medium text-white">{h.symbol}</div>
-                          <div className="text-xs text-gray-500">{h.name}</div>
+                          <div className="font-medium text-foreground">{h.symbol}</div>
+                          <div className="text-xs text-muted-foreground">{h.name}</div>
                         </td>
-                        <td className="py-3 px-2 text-right text-gray-300 font-mono text-xs">
+                        <td className="py-3 px-2 text-right text-foreground font-mono text-xs">
                           {h.netAmount.toFixed(8).replace(/\.?0+$/, "")}
                         </td>
-                        <td className="py-3 px-2 text-right text-gray-300">
+                        <td className="py-3 px-2 text-right text-foreground">
                           {formatCurrency(h.avgBuyPrice, currency)}
                         </td>
-                        <td className="py-3 px-2 text-right text-white font-medium">
+                        <td className="py-3 px-2 text-right text-foreground font-medium">
                           {formatCurrency(h.currentValue, currency)}
                         </td>
                         <td className="py-3 px-2 text-right">
@@ -338,13 +339,13 @@ export default function DashboardPage() {
                         </td>
                         <td className="py-3 px-2 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                            <div className="w-16 h-1.5 bg-accent rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-blue-500 rounded-full"
                                 style={{ width: `${Math.min(h.allocation, 100)}%` }}
                               />
                             </div>
-                            <span className="text-gray-400 text-xs w-10 text-right">
+                            <span className="text-muted-foreground text-xs w-10 text-right">
                               {h.allocation.toFixed(1)}%
                             </span>
                           </div>
@@ -355,7 +356,7 @@ export default function DashboardPage() {
                 </table>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-48 text-gray-600">
+              <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
                 <TrendingUp className="h-10 w-10 mb-2 opacity-30" />
                 <p className="text-sm">{t("dashboard.noHoldingsDesc")}</p>
               </div>
@@ -364,9 +365,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Transactions */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">{t("dashboard.recentTransactions")}</h2>
+            <h2 className="text-lg font-semibold text-foreground">{t("dashboard.recentTransactions")}</h2>
             <Link
               href="/upload"
               className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
@@ -381,7 +382,7 @@ export default function DashboardPage() {
             onEdit={() => fetchData()}
           />
           {transactions.length >= 10 && (
-            <p className="text-center text-gray-600 text-sm mt-4">
+            <p className="text-center text-muted-foreground text-sm mt-4">
               {t("dashboard.showingLast")}{" "}
               <Link href="/chart" className="text-blue-400 hover:underline">
                 {t("dashboard.viewAllChart")}

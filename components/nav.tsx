@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export function Nav() {
   const pathname = usePathname();
@@ -48,14 +49,14 @@ export function Nav() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 border-b border-gray-800 h-14 flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-14 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Bitcoin className="h-5 w-5 text-orange-400" />
-          <span className="font-bold text-white">StackSat</span>
+          <span className="font-bold text-foreground">StackSat</span>
         </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="text-gray-400 hover:text-white p-1"
+          className="text-muted-foreground hover:text-foreground p-1"
         >
           {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -72,16 +73,16 @@ export function Nav() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full z-40 w-64 bg-gray-900 border-r border-gray-800
+          fixed top-0 left-0 h-full z-40 w-64 bg-card border-r border-border
           transition-transform duration-300 ease-in-out
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0
         `}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-800">
+        <div className="h-16 flex items-center gap-2 px-6 border-b border-border">
           <Bitcoin className="h-6 w-6 text-orange-400" />
-          <span className="text-lg font-bold text-white">StackSat</span>
+          <span className="text-lg font-bold text-foreground">StackSat</span>
         </div>
 
         {/* Navigation */}
@@ -97,7 +98,7 @@ export function Nav() {
                   flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
                   ${isActive
                     ? "bg-blue-600/20 text-blue-400 font-medium"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }
                 `}
               >
@@ -110,16 +111,16 @@ export function Nav() {
         </nav>
 
         {/* User section */}
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
             <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-              <User className="h-4 w-4 text-white" />
+              <User className="h-4 w-4 text-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
+              <p className="text-sm font-medium text-foreground truncate">
                 {session?.user?.name || "User"}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {session?.user?.email}
               </p>
             </div>
@@ -136,15 +137,16 @@ export function Nav() {
           )}
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-950/30 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-950/30 transition-all"
           >
             <LogOut className="h-4 w-4" />
             <span className="text-sm">{t("nav.signOut")}</span>
           </button>
 
-          {/* Language Switcher */}
-          <div className="mt-3 flex justify-center">
+          {/* Language & Theme Switchers */}
+          <div className="mt-3 flex justify-center gap-2">
             <LanguageSwitcher />
+            <ThemeSwitcher />
           </div>
         </div>
       </aside>
@@ -154,7 +156,7 @@ export function Nav() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-background">
       <Nav />
       <main className="lg:ml-64 pt-14 lg:pt-0">
         <div className="p-6">{children}</div>

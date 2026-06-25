@@ -63,12 +63,12 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const item = payload[0].payload;
     return (
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl">
-        <p className="text-white font-semibold">{item.symbol}</p>
-        <p className="text-gray-300 text-sm">
+      <div className="bg-muted border border-border rounded-lg p-3 shadow-xl">
+        <p className="text-foreground font-semibold">{item.symbol}</p>
+        <p className="text-foreground text-sm">
           {formatCurrency(item.currentValue, "THB")}
         </p>
-        <p className="text-gray-400 text-sm">{item.allocation.toFixed(1)}%</p>
+        <p className="text-muted-foreground text-sm">{item.allocation.toFixed(1)}%</p>
       </div>
     );
   }
@@ -89,7 +89,7 @@ const CustomLegend = ({
             className="h-2.5 w-2.5 rounded-full flex-shrink-0"
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-gray-400 text-xs">{entry.value}</span>
+          <span className="text-muted-foreground text-xs">{entry.value}</span>
         </li>
       ))}
     </ul>
@@ -102,7 +102,7 @@ export function PortfolioChart({
 }: PortfolioChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
         No portfolio data yet
       </div>
     );

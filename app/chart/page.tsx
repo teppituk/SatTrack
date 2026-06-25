@@ -21,7 +21,7 @@ interface Transaction {
   coin: { symbol: string; name: string };
 }
 
-type Currency = "THB" | "USDT";
+type Currency = "THB" | "USD";
 
 interface ExchangeOption {
   code: string;
@@ -79,7 +79,7 @@ export default function ChartPage() {
     }
   };
 
-  // แปลงค่าจากสกุลที่เก็บไว้ → สกุลที่เลือกแสดง (THB/USDT) ผ่าน USD/THB rate
+  // แปลงค่าจากสกุลที่เก็บไว้ → สกุลที่เลือกแสดง (THB/USD) ผ่าน USD/THB rate
   const convertValue = (value: number, from: string, to: Currency): number => {
     const thb = from === "THB" ? value : value * usdThbRate; // USD/USDT → THB
     return to === "THB" ? thb : thb / usdThbRate;
@@ -129,21 +129,21 @@ export default function ChartPage() {
               <BarChart2 className="h-5 w-5 text-purple-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{t("chart.title")}</h1>
-              <p className="text-gray-400 text-sm">{t("chart.subtitle")}</p>
+              <h1 className="text-2xl font-bold text-foreground">{t("chart.title")}</h1>
+              <p className="text-muted-foreground text-sm">{t("chart.subtitle")}</p>
             </div>
           </div>
 
-          {/* ปุ่มสลับสกุลเงิน THB / USDT */}
-          <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
-            {(["THB", "USDT"] as Currency[]).map((c) => (
+          {/* ปุ่มสลับสกุลเงิน THB / USD */}
+          <div className="flex bg-card border border-border rounded-xl p-1">
+            {(["THB", "USD"] as Currency[]).map((c) => (
               <button
                 key={c}
                 onClick={() => setDisplayCurrency(c)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   displayCurrency === c
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-blue-600 text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {c}
@@ -153,18 +153,18 @@ export default function ChartPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
+        <div className="bg-card border border-border rounded-xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-400 font-medium">{t("chart.filters")}</span>
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground font-medium">{t("chart.filters")}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">{t("chart.filterCoin")}</label>
+              <label className="block text-xs text-muted-foreground mb-1">{t("chart.filterCoin")}</label>
               <select
                 value={selectedCoin}
                 onChange={(e) => setSelectedCoin(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-muted border border-border text-foreground text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ALL">{t("chart.allCoins")}</option>
                 {coins.map((c) => (
@@ -174,11 +174,11 @@ export default function ChartPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">{t("chart.filterExchange")}</label>
+              <label className="block text-xs text-muted-foreground mb-1">{t("chart.filterExchange")}</label>
               <select
                 value={selectedExchange}
                 onChange={(e) => setSelectedExchange(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-muted border border-border text-foreground text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ALL">{t("chart.allExchanges")}</option>
                 {exchanges.map((ex) => (
@@ -190,35 +190,35 @@ export default function ChartPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">{t("chart.dateFrom")}</label>
+              <label className="block text-xs text-muted-foreground mb-1">{t("chart.dateFrom")}</label>
               <input
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-muted border border-border text-foreground text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">{t("chart.dateTo")}</label>
+              <label className="block text-xs text-muted-foreground mb-1">{t("chart.dateTo")}</label>
               <input
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-muted border border-border text-foreground text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
         </div>
 
         {/* Chart */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-foreground">
                 {displayCoin} {t("chart.priceChart")}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {chartTransactions.length}{" "}
                 {chartTransactions.length !== 1
                   ? t("chart.transactionsShownPlural")
@@ -229,11 +229,11 @@ export default function ChartPage() {
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                <span className="text-gray-400">{t("chart.buy")}</span>
+                <span className="text-muted-foreground">{t("chart.buy")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                <span className="text-gray-400">{t("chart.sell")}</span>
+                <span className="text-muted-foreground">{t("chart.sell")}</span>
               </div>
             </div>
           </div>
@@ -252,14 +252,14 @@ export default function ChartPage() {
 
         {/* Transaction List */}
         {filtered.length > 0 && (
-          <div className="mt-6 bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h3 className="text-base font-semibold text-white mb-4">
+          <div className="mt-6 bg-card border border-border rounded-xl p-6">
+            <h3 className="text-base font-semibold text-foreground mb-4">
               {t("chart.filteredTransactions")} ({filtered.length})
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-800 text-gray-400">
+                  <tr className="border-b border-border text-muted-foreground">
                     <th className="text-left py-2 px-3">{t("chart.date")}</th>
                     <th className="text-left py-2 px-3">{t("chart.coin")}</th>
                     <th className="text-left py-2 px-3">{t("chart.type")}</th>
@@ -269,13 +269,13 @@ export default function ChartPage() {
                     <th className="text-left py-2 px-3">{t("chart.exchange")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className="divide-y divide-border">
                   {filtered.slice(0, 20).map(toDisplay).map((tx) => (
-                    <tr key={tx.id} className="hover:bg-gray-800/50">
-                      <td className="py-2 px-3 text-gray-400 text-xs">
+                    <tr key={tx.id} className="hover:bg-muted/50">
+                      <td className="py-2 px-3 text-muted-foreground text-xs">
                         {new Date(tx.txDate).toLocaleDateString("th-TH")}
                       </td>
-                      <td className="py-2 px-3 font-medium text-white">
+                      <td className="py-2 px-3 font-medium text-foreground">
                         {tx.coin.symbol}
                       </td>
                       <td className="py-2 px-3">
@@ -287,16 +287,16 @@ export default function ChartPage() {
                           {tx.type}
                         </span>
                       </td>
-                      <td className="py-2 px-3 text-right text-gray-300 font-mono text-xs">
+                      <td className="py-2 px-3 text-right text-foreground font-mono text-xs">
                         {tx.amount.toFixed(6)}
                       </td>
-                      <td className="py-2 px-3 text-right text-gray-300">
-                        {fmt(tx.price)} <span className="text-gray-600 text-xs">{displayCurrency}</span>
+                      <td className="py-2 px-3 text-right text-foreground">
+                        {fmt(tx.price)} <span className="text-muted-foreground text-xs">{displayCurrency}</span>
                       </td>
-                      <td className="py-2 px-3 text-right text-white">
-                        {fmt(tx.totalValue)} <span className="text-gray-600 text-xs">{displayCurrency}</span>
+                      <td className="py-2 px-3 text-right text-foreground">
+                        {fmt(tx.totalValue)} <span className="text-muted-foreground text-xs">{displayCurrency}</span>
                       </td>
-                      <td className="py-2 px-3 text-gray-500 text-xs">
+                      <td className="py-2 px-3 text-muted-foreground text-xs">
                         {tx.exchange}
                       </td>
                     </tr>
@@ -304,7 +304,7 @@ export default function ChartPage() {
                 </tbody>
               </table>
               {filtered.length > 20 && (
-                <p className="text-center text-gray-600 text-xs mt-3">
+                <p className="text-center text-muted-foreground text-xs mt-3">
                   {t("chart.showingOf")} {filtered.length} {t("chart.transactions")}
                 </p>
               )}
