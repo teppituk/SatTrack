@@ -1,0 +1,33 @@
+# Deploy target: single EC2 instance.
+# Postgres + Redis are MANAGED (RDS + ElastiCache) — they are NOT in this file.
+# Provide all secrets via .env.production (see .env.production.example).
+#
+#   docker compose --env-file .env.production up -d --build
+#
+# The web service applies pending Prisma migrations on start (idempotent).
+
+services:
+  web:
+    build: .
+    image: stacksat:latest
+    command: sh -c "npx prisma migrate deploy && npm run start"
+    env_file: .env.production
+    ports:
+      - "80:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  worker:
+    # Reuses the image built by the web service (same Dockerfile).
+    build: .
+    image: stacksat:latest
+    command: npm run worker
+    env_file: .env.production
+    restart: unless-stopped
+    depends_on:
+      - web

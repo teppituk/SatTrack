@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.*
+!.env.production.example
+npm-debug.log*
+*.log
+.DS_Store
+public/uploads
+tsconfig.tsbuildinfo
+README.md
+DEPLOY_AWS.md
