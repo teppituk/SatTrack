@@ -6,7 +6,19 @@
     "share": "แชร์",
     "subscription": "แพ็คเกจ",
     "settings": "ตั้งค่า",
+    "whitepaper": "Bitcoin Whitepaper",
     "signOut": "ออกจากระบบ"
+  },
+  "whitepaper": {
+    "title": "Bitcoin Whitepaper",
+    "subtitle": "Bitcoin: ระบบเงินสดอิเล็กทรอนิกส์แบบเพียร์ทูเพียร์ โดย Satoshi Nakamoto",
+    "languageLabel": "ภาษาเอกสาร",
+    "thai": "ไทย",
+    "english": "อังกฤษ",
+    "openNewTab": "เปิดในแท็บใหม่",
+    "download": "ดาวน์โหลด PDF",
+    "fallback": "เบราว์เซอร์ของคุณไม่รองรับการแสดง PDF กรุณาดาวน์โหลดหรือเปิดในแท็บใหม่",
+    "source": "ที่มา: bitcoin.org"
   },
   "auth": {
     "login": "เข้าสู่ระบบ",
@@ -60,8 +72,8 @@
     "alloc": "สัดส่วน",
     "noHoldings": "ยังไม่มีสินทรัพย์",
     "noHoldingsDesc": "ไม่มีสินทรัพย์ที่จะแสดง",
-    "uploadSlip": "อัพโหลดสลิป",
-    "uploadSlipLink": "อัพโหลดสลิป",
+    "uploadSlip": "Stack Bitcoin",
+    "uploadSlipLink": "Stack Bitcoin",
     "showingLast": "แสดง 10 ธุรกรรมล่าสุด",
     "viewAllChart": "ดูทั้งหมดในกราฟ",
     "currency": "สกุลเงิน",

@@ -17,6 +17,7 @@ import {
   ChevronRight,
   User,
   Shield,
+  FileText,
 } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -38,6 +39,7 @@ export function Nav() {
     { href: "/settings/share", icon: Share2, label: t("nav.share"), key: "share" },
     { href: "/settings/subscription", icon: Zap, label: t("nav.subscription"), key: "subscription" },
     { href: "/settings", icon: Settings, label: t("nav.settings"), key: "settings" },
+    { href: "/whitepaper", icon: FileText, label: t("nav.whitepaper"), key: "whitepaper" },
   ];
 
   const navItems = allNavItems.filter((item) => {

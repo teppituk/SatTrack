@@ -6,7 +6,19 @@
     "share": "Share",
     "subscription": "Subscription",
     "settings": "Settings",
+    "whitepaper": "Bitcoin Whitepaper",
     "signOut": "Sign Out"
+  },
+  "whitepaper": {
+    "title": "Bitcoin Whitepaper",
+    "subtitle": "Bitcoin: A Peer-to-Peer Electronic Cash System by Satoshi Nakamoto",
+    "languageLabel": "Document language",
+    "thai": "Thai",
+    "english": "English",
+    "openNewTab": "Open in new tab",
+    "download": "Download PDF",
+    "fallback": "Your browser cannot display the PDF. Please download it or open in a new tab.",
+    "source": "Source: bitcoin.org"
   },
   "auth": {
     "login": "Sign In",
@@ -60,8 +72,8 @@
     "alloc": "Alloc.",
     "noHoldings": "No holdings yet",
     "noHoldingsDesc": "No holdings to display",
-    "uploadSlip": "Upload a slip",
-    "uploadSlipLink": "Upload Slip",
+    "uploadSlip": "Stack Bitcoin",
+    "uploadSlipLink": "Stack Bitcoin",
     "showingLast": "Showing last 10 transactions.",
     "viewAllChart": "View all in chart",
     "currency": "Currency",
