@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/nav";
 import { Settings, Share2, Zap, User, ChevronRight, Shield, Globe } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
+import { HolderTierCard } from "@/components/holder-tier-card";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
@@ -95,6 +96,9 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* Holder Tier */}
+        <HolderTierCard />
 
         {/* Language Selection */}
         <div className="bg-card border border-border rounded-xl p-6 mb-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, CheckCircle, AlertCircle, ImageIcon, X, Upload } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, ImageIcon, X, Upload, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 
 interface ExchangeOption {
@@ -49,6 +49,17 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // ราคาปัจจุบันของ BTC (ตาม currency) สำหรับ default ราคาต่อหน่วย
+  const [livePrice, setLivePrice] = useState<{ THB: number; USD: number } | null>(null);
+  const [priceLoading, setPriceLoading] = useState(true);
+  const [priceUpdatedAt, setPriceUpdatedAt] = useState<string | null>(null);
+  // ผู้ใช้แก้ราคาต่อหน่วยเองหรือยัง — ถ้าแก้แล้วจะไม่ override ด้วยราคาปัจจุบัน
+  const [priceEdited, setPriceEdited] = useState(false);
+  const priceEditedRef = useRef(false);
+  const currencyRef = useRef<"THB" | "USD">("THB");
+
+  const fmtAmt = (n: number) => (n > 0 ? String(Number(n.toFixed(8))) : "");
+  const fmtMoney = (n: number) => (n > 0 ? String(Number(n.toFixed(2))) : "");
 
   // โหลดรายการ exchange ที่ admin เปิดใช้งาน
   useEffect(() => {
@@ -71,6 +82,135 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
 
   const updateForm = (field: keyof TxData, value: string | number) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
+
+  // inquiry ราคา BTC ล่าสุด — ใช้ทั้งตอนโหลดหน้าและกดปุ่ม Refresh
+  const loadPrice = async () => {
+    setPriceLoading(true);
+    try {
+      // cache-bust เพื่อให้ปุ่ม Refresh ได้ราคาล่าสุดจริง ๆ
+      const res = await fetch(`/api/price/btc?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("price fetch failed");
+      const d = await res.json();
+      if (!d || d.error) throw new Error("no price");
+      const lp = { THB: Number(d.thb) || 0, USD: Number(d.usd) || 0 };
+      setLivePrice(lp);
+      setPriceUpdatedAt(d.updatedAt ?? new Date().toISOString());
+      // ตั้ง default เฉพาะเมื่อผู้ใช้ยังไม่ได้แก้ราคาเอง
+      if (!priceEditedRef.current) applyPrice(lp[currencyRef.current]);
+    } catch {
+      // เงียบไว้ — ผู้ใช้ยังคีย์ราคาเองได้
+    } finally {
+      setPriceLoading(false);
+    }
+  };
+
+  // ดึงราคาปัจจุบันของ BTC ครั้งแรก
+  useEffect(() => {
+    loadPrice();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ตั้งราคาต่อหน่วย แล้วคำนวณช่องอื่นต่อเนื่อง (มูลค่ารวม → จำนวน, หรือ จำนวน → มูลค่ารวม)
+  const applyPrice = (price: number) => {
+    setRawInputs((prev) => {
+      const next = { ...prev, price: fmtMoney(price) };
+      return next;
+    });
+    setFormData((prev) => {
+      const next = { ...prev, price };
+      if (price > 0) {
+        if (prev.totalValue > 0) next.amount = prev.totalValue / price;
+        else if (prev.amount > 0) next.totalValue = prev.amount * price;
+      }
+      return next;
+    });
+    setRawInputs((prev) => {
+      const next = { ...prev };
+      // sync ช่องที่ถูกคำนวณใหม่
+      if (price > 0) {
+        const total = parseFloat(prev.totalValue);
+        const amt = parseFloat(prev.amount);
+        if (!isNaN(total) && total > 0) next.amount = fmtAmt(total / price);
+        else if (!isNaN(amt) && amt > 0) next.totalValue = fmtMoney(amt * price);
+      }
+      return next;
+    });
+  };
+
+  // เปลี่ยน currency — ถ้ายังไม่แก้ราคาเอง ให้ default เป็นราคาปัจจุบันของ currency ใหม่
+  const handleCurrencyChange = (cur: "THB" | "USD") => {
+    currencyRef.current = cur;
+    updateForm("currency", cur);
+    if (!priceEditedRef.current && livePrice) applyPrice(livePrice[cur]);
+  };
+
+  // กรอกจำนวน BTC เอง → คำนวณมูลค่ารวมจากราคาต่อหน่วย
+  const handleAmountChange = (raw: string) => {
+    const a = parseFloat(raw);
+    const amt = isNaN(a) ? 0 : a;
+    const price = formData.price;
+    setRawInputs((prev) => ({
+      ...prev,
+      amount: raw,
+      ...(price > 0 ? { totalValue: fmtMoney(amt * price) } : {}),
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      amount: amt,
+      ...(price > 0 ? { totalValue: amt * price } : {}),
+    }));
+  };
+
+  // กรอกมูลค่ารวม → คำนวณจำนวน BTC จากราคาต่อหน่วย (ราคาปัจจุบันหรือที่คีย์เอง)
+  const handleTotalChange = (raw: string) => {
+    const t = parseFloat(raw);
+    const tot = isNaN(t) ? 0 : t;
+    const price = formData.price;
+    setRawInputs((prev) => ({
+      ...prev,
+      totalValue: raw,
+      ...(price > 0 ? { amount: fmtAmt(tot / price) } : {}),
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      totalValue: tot,
+      ...(price > 0 ? { amount: tot / price } : {}),
+    }));
+  };
+
+  // แก้ราคาต่อหน่วยเอง → ตั้ง flag ว่าผู้ใช้คีย์เอง และคำนวณช่องที่เกี่ยวข้อง
+  const handlePriceChange = (raw: string) => {
+    const p = parseFloat(raw);
+    const price = isNaN(p) ? 0 : p;
+    setPriceEdited(true);
+    priceEditedRef.current = true;
+    setRawInputs((prev) => {
+      const next = { ...prev, price: raw };
+      if (price > 0) {
+        const total = parseFloat(prev.totalValue);
+        const amt = parseFloat(prev.amount);
+        if (!isNaN(total) && total > 0) next.amount = fmtAmt(total / price);
+        else if (!isNaN(amt) && amt > 0) next.totalValue = fmtMoney(amt * price);
+      }
+      return next;
+    });
+    setFormData((prev) => {
+      const next = { ...prev, price };
+      if (price > 0) {
+        if (prev.totalValue > 0) next.amount = prev.totalValue / price;
+        else if (prev.amount > 0) next.totalValue = prev.amount * price;
+      }
+      return next;
+    });
+  };
+
+  // กลับไปใช้ราคาปัจจุบัน
+  const useCurrentPrice = () => {
+    if (!livePrice) return;
+    setPriceEdited(false);
+    priceEditedRef.current = false;
+    applyPrice(livePrice[formData.currency as "THB" | "USD"]);
+  };
 
   const onSelectFile = (file: File | null) => {
     if (!file) return;
@@ -102,6 +242,11 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
     setDone(false);
     setError("");
     removeFile();
+    setPriceEdited(false);
+    priceEditedRef.current = false;
+    currencyRef.current = "THB";
+    // default ราคาต่อหน่วยกลับเป็นราคาปัจจุบัน (THB)
+    if (livePrice) applyPrice(livePrice.THB);
   };
 
   // validate แล้วเปิด popup ยืนยัน
@@ -334,7 +479,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
           <label className="block text-xs text-muted-foreground mb-1">Currency</label>
           <select
             value={formData.currency}
-            onChange={(e) => updateForm("currency", e.target.value)}
+            onChange={(e) => handleCurrencyChange(e.target.value as "THB" | "USD")}
             className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="THB">THB</option>
@@ -344,17 +489,15 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
 
         {/* Amount */}
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">จำนวน BTC</label>
+          <label className="block text-xs text-muted-foreground mb-1">
+            จำนวน BTC{" "}
+            <span className="text-muted-foreground">(กรอกมูลค่ารวมเพื่อคำนวณอัตโนมัติ)</span>
+          </label>
           <input
             type="text"
             inputMode="decimal"
             value={rawInputs.amount}
-            onChange={(e) => {
-              const raw = e.target.value;
-              setRawInputs((prev) => ({ ...prev, amount: raw }));
-              const v = parseFloat(raw);
-              if (!isNaN(v)) updateForm("amount", v);
-            }}
+            onChange={(e) => handleAmountChange(e.target.value)}
             placeholder="0.000000001"
             className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -362,20 +505,53 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
 
         {/* Price */}
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">ราคาต่อหน่วย</label>
+          <div className="flex items-center justify-between mb-1 gap-2">
+            <label className="text-xs text-muted-foreground whitespace-nowrap">ราคาต่อหน่วย</label>
+            {/* ปุ่ม Refresh เห็นเสมอ (อยู่คู่ label) */}
+            <button
+              type="button"
+              onClick={loadPrice}
+              disabled={priceLoading}
+              title="ดึงราคาล่าสุด"
+              className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+            >
+              <RefreshCw className={`h-3 w-3 ${priceLoading ? "animate-spin" : ""}`} />
+              {priceLoading ? "กำลังโหลด…" : "Refresh"}
+            </button>
+          </div>
           <input
             type="text"
             inputMode="decimal"
             value={rawInputs.price}
-            onChange={(e) => {
-              const raw = e.target.value;
-              setRawInputs((prev) => ({ ...prev, price: raw }));
-              const v = parseFloat(raw);
-              if (!isNaN(v)) updateForm("price", v);
-            }}
+            onChange={(e) => handlePriceChange(e.target.value)}
             placeholder="2000000"
             className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {/* บรรทัดสถานะราคาล่าสุด — อยู่ใต้ช่อง wrap ได้ ไม่ดันปุ่มหลุด */}
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px]">
+            {livePrice && (
+              <span className="text-muted-foreground">
+                ล่าสุด {fmtNum(livePrice[formData.currency as "THB" | "USD"])}{" "}
+                {formData.currency}
+                {priceUpdatedAt ? ` · ${format(new Date(priceUpdatedAt), "HH:mm:ss")}` : ""}
+              </span>
+            )}
+            {!priceEdited && livePrice && !priceLoading && (
+              <span className="text-green-400">● ราคาปัจจุบัน</span>
+            )}
+            {livePrice && priceEdited && (
+              <button
+                type="button"
+                onClick={useCurrentPrice}
+                className="text-blue-400 hover:underline"
+              >
+                ใช้ราคาปัจจุบัน
+              </button>
+            )}
+            {!livePrice && !priceLoading && (
+              <span className="text-muted-foreground">ดึงราคาล่าสุดไม่ได้ — กรอกเองได้</span>
+            )}
+          </div>
         </div>
 
         {/* Total Value */}
@@ -385,12 +561,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
             type="text"
             inputMode="decimal"
             value={rawInputs.totalValue}
-            onChange={(e) => {
-              const raw = e.target.value;
-              setRawInputs((prev) => ({ ...prev, totalValue: raw }));
-              const v = parseFloat(raw);
-              if (!isNaN(v)) updateForm("totalValue", v);
-            }}
+            onChange={(e) => handleTotalChange(e.target.value)}
             placeholder="2000"
             className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />

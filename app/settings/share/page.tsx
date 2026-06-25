@@ -7,14 +7,13 @@ import { AppShell } from "@/components/nav";
 import {
   Share2,
   Plus,
-  Copy,
   Trash2,
-  CheckCircle,
   Loader2,
   Link as LinkIcon,
   AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
+import { ShareActions } from "@/components/share-actions";
 
 interface ShareLink {
   id: string;
@@ -23,6 +22,7 @@ interface ShareLink {
     showCostBasis: boolean;
     showPnl: boolean;
     showTransactions: boolean;
+    privacyMode?: boolean;
   };
   expiresAt: string | null;
   createdAt: string;
@@ -35,12 +35,12 @@ export default function ShareSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // New link config
   const [showCostBasis, setShowCostBasis] = useState(true);
   const [showPnl, setShowPnl] = useState(true);
   const [showTransactions, setShowTransactions] = useState(false);
+  const [privacyMode, setPrivacyMode] = useState(false);
   const [expiresIn, setExpiresIn] = useState<"never" | "24h" | "7d" | "30d">("never");
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function ShareSettingsPage() {
       const res = await fetch("/api/share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ showCostBasis, showPnl, showTransactions, expiresIn }),
+        body: JSON.stringify({ showCostBasis, showPnl, showTransactions, privacyMode, expiresIn }),
       });
 
       if (!res.ok) {
@@ -96,13 +96,6 @@ export default function ShareSettingsPage() {
     if (res.ok) {
       setShareLinks((prev) => prev.filter((l) => l.id !== id));
     }
-  };
-
-  const copyLink = (token: string, id: string) => {
-    const url = `${window.location.origin}/share/${token}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const getShareUrl = (token: string) =>
@@ -165,6 +158,13 @@ export default function ShareSettingsPage() {
                   desc: "Show recent transaction history",
                   value: showTransactions,
                   setter: setShowTransactions,
+                },
+                {
+                  key: "privacyMode",
+                  label: "🔒 Privacy Mode",
+                  desc: "Hide exact amounts — share only % return & badges",
+                  value: privacyMode,
+                  setter: setPrivacyMode,
                 },
               ].map((item) => (
                 <div
@@ -278,7 +278,8 @@ export default function ShareSettingsPage() {
                             </span>
                           )}
                         </div>
-                        <div className="flex gap-3 text-xs text-muted-foreground">
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                          {link.config.privacyMode && <span className="text-blue-400">🔒 Privacy</span>}
                           {link.config.showCostBasis && <span>Cost basis</span>}
                           {link.config.showPnl && <span>P&L</span>}
                           {link.config.showTransactions && <span>Transactions</span>}
@@ -289,18 +290,10 @@ export default function ShareSettingsPage() {
                             ` · Expires ${format(new Date(link.expiresAt), "dd MMM yyyy")}`}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => copyLink(link.token, link.id)}
-                          className="p-2 text-muted-foreground hover:text-foreground bg-muted hover:bg-accent rounded-lg transition-colors"
-                          title="Copy link"
-                        >
-                          {copiedId === link.id ? (
-                            <CheckCircle className="h-4 w-4 text-green-400" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </button>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {!isExpired && (
+                          <ShareActions url={getShareUrl(link.token)} variant="compact" />
+                        )}
                         <a
                           href={getShareUrl(link.token)}
                           target="_blank"

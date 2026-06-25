@@ -1,0 +1,201 @@
+import { prisma } from "@/lib/prisma";
+
+export interface ShareConfig {
+  showCostBasis: boolean;
+  showPnl: boolean;
+  showTransactions: boolean;
+  // โหมดความเป็นส่วนตัว — ซ่อนจำนวนเงิน/จำนวน BTC จริง โชว์เฉพาะ %
+  privacyMode: boolean;
+}
+
+export const defaultShareConfig: ShareConfig = {
+  showCostBasis: true,
+  showPnl: true,
+  showTransactions: false,
+  privacyMode: false,
+};
+
+export function parseShareConfig(raw: unknown): ShareConfig {
+  const c = (raw ?? {}) as Partial<ShareConfig>;
+  return {
+    showCostBasis: c.showCostBasis ?? true,
+    showPnl: c.showPnl ?? true,
+    showTransactions: c.showTransactions ?? false,
+    privacyMode: c.privacyMode ?? false,
+  };
+}
+
+const SYMBOL_TO_ID: Record<string, string> = {
+  BTC: "bitcoin",
+  ETH: "ethereum",
+  BNB: "binancecoin",
+  SOL: "solana",
+  ADA: "cardano",
+};
+
+export async function fetchPrices(
+  symbols: string[]
+): Promise<Record<string, number>> {
+  const prices: Record<string, number> = {};
+  try {
+    const ids = symbols.map((s) => SYMBOL_TO_ID[s.toUpperCase()]).filter(Boolean);
+    if (ids.length === 0) return prices;
+    const apiKey = process.env.COINGECKO_API_KEY;
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(
+        ","
+      )}&vs_currencies=thb${apiKey ? `&x_cg_demo_api_key=${apiKey}` : ""}`,
+      { next: { revalidate: 60 } }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      symbols.forEach((sym) => {
+        const id = SYMBOL_TO_ID[sym.toUpperCase()];
+        if (id && data[id]) prices[sym] = data[id].thb || 0;
+      });
+    }
+  } catch {}
+  return prices;
+}
+
+export interface Holding {
+  symbol: string;
+  name: string;
+  amount: number;
+  totalCost: number;
+  currentPrice: number;
+  currentValue: number;
+  avgCost: number;
+  pnl: number;
+  pnlPercent: number;
+}
+
+interface Tx {
+  type: string;
+  amount: number;
+  totalValue: number;
+  txDate: Date;
+  coin: { symbol: string; name: string };
+}
+
+export interface StackBadge {
+  emoji: string;
+  label: string;
+}
+
+export interface StackStats {
+  holdings: Holding[];
+  totalValue: number;
+  totalInvested: number;
+  totalPnl: number;
+  totalPnlPercent: number;
+  btcAmount: number;
+  satsStacked: number;
+  avgBtcCost: number;
+  buyCount: number;
+  sellCount: number;
+  firstTxDate: Date | null;
+  monthsStacking: number;
+  badges: StackBadge[];
+}
+
+export async function computeStats(transactions: Tx[]): Promise<StackStats> {
+  const map = new Map<
+    string,
+    { symbol: string; name: string; amount: number; totalCost: number }
+  >();
+  let buyCount = 0;
+  let sellCount = 0;
+  let firstTxDate: Date | null = null;
+
+  for (const tx of transactions) {
+    const sym = tx.coin.symbol;
+    if (!map.has(sym)) {
+      map.set(sym, { symbol: sym, name: tx.coin.name, amount: 0, totalCost: 0 });
+    }
+    const h = map.get(sym)!;
+    if (tx.type === "BUY") {
+      h.amount += tx.amount;
+      h.totalCost += tx.totalValue;
+      buyCount++;
+    } else {
+      h.amount -= tx.amount;
+      sellCount++;
+    }
+    const d = new Date(tx.txDate);
+    if (!firstTxDate || d < firstTxDate) firstTxDate = d;
+  }
+
+  const symbols = Array.from(map.keys());
+  const prices = await fetchPrices(symbols);
+
+  const holdings: Holding[] = Array.from(map.values())
+    .filter((h) => h.amount > 0)
+    .map((h) => {
+      const currentPrice = prices[h.symbol] || 0;
+      const currentValue = h.amount * currentPrice;
+      const avgCost = h.totalCost / h.amount;
+      const pnl = currentValue - h.totalCost;
+      const pnlPercent = h.totalCost > 0 ? (pnl / h.totalCost) * 100 : 0;
+      return { ...h, currentPrice, currentValue, avgCost, pnl, pnlPercent };
+    })
+    .sort((a, b) => b.currentValue - a.currentValue);
+
+  const totalValue = holdings.reduce((s, h) => s + h.currentValue, 0);
+  const totalInvested = holdings.reduce((s, h) => s + h.totalCost, 0);
+  const totalPnl = holdings.reduce((s, h) => s + h.pnl, 0);
+  const totalPnlPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+
+  const btc = holdings.find((h) => h.symbol.toUpperCase() === "BTC");
+  const btcAmount = btc?.amount ?? 0;
+  const satsStacked = Math.round(btcAmount * 1e8);
+  const avgBtcCost = btc?.avgCost ?? 0;
+
+  const now = Date.now();
+  const monthsStacking = firstTxDate
+    ? Math.max(0, (now - firstTxDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
+    : 0;
+
+  const badges: StackBadge[] = [];
+  if (btcAmount >= 1) badges.push({ emoji: "🟧", label: "Whole Coiner" });
+  else if (btcAmount >= 0.1) badges.push({ emoji: "🔶", label: "0.1 BTC Club" });
+  if (sellCount === 0 && buyCount > 0) badges.push({ emoji: "💎", label: "Diamond Hands" });
+  if (buyCount >= 5) badges.push({ emoji: "📈", label: "DCA Stacker" });
+  if (monthsStacking >= 12) badges.push({ emoji: "🏆", label: `HODL ${Math.floor(monthsStacking / 12)}y+` });
+  else if (monthsStacking >= 1) badges.push({ emoji: "⏳", label: `${Math.floor(monthsStacking)}mo stacking` });
+  if (totalPnlPercent >= 100) badges.push({ emoji: "🚀", label: "2x+" });
+
+  return {
+    holdings,
+    totalValue,
+    totalInvested,
+    totalPnl,
+    totalPnlPercent,
+    btcAmount,
+    satsStacked,
+    avgBtcCost,
+    buyCount,
+    sellCount,
+    firstTxDate,
+    monthsStacking,
+    badges,
+  };
+}
+
+export async function loadShare(token: string) {
+  const shareLink = await prisma.shareLink.findUnique({
+    where: { token },
+    include: {
+      user: {
+        include: {
+          transactions: { include: { coin: true }, orderBy: { txDate: "desc" } },
+        },
+      },
+    },
+  });
+  if (!shareLink) return null;
+  if (shareLink.expiresAt && shareLink.expiresAt < new Date()) {
+    return { expired: true as const };
+  }
+  return shareLink;
+}

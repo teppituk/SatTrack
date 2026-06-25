@@ -8,6 +8,7 @@ const createShareSchema = z.object({
   showCostBasis: z.boolean().default(true),
   showPnl: z.boolean().default(true),
   showTransactions: z.boolean().default(false),
+  privacyMode: z.boolean().default(false),
   expiresIn: z.enum(["never", "24h", "7d", "30d"]).default("never"),
 });
 
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
           showCostBasis: data.showCostBasis,
           showPnl: data.showPnl,
           showTransactions: data.showTransactions,
+          privacyMode: data.privacyMode,
         },
         expiresAt,
       },

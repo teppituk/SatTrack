@@ -22,12 +22,15 @@ import {
 import { useLocale } from "@/contexts/locale-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { useHolderTier } from "@/lib/use-holder-tier";
 
 export function Nav() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const { tier } = useHolderTier();
+  const isTh = locale === "th";
 
   const permissions = session?.user?.permissions;
   const isAdmin = session?.user?.role === "ADMIN";
@@ -127,6 +130,23 @@ export function Nav() {
               </p>
             </div>
           </div>
+
+          {/* Accumulation tier */}
+          {tier && (
+            <div
+              title={isTh ? tier.descTh : tier.descEn}
+              className="flex items-center gap-2 px-3 py-2 mb-2 rounded-lg bg-muted/50 border border-border"
+            >
+              <span className="text-lg leading-none">{tier.emoji}</span>
+              <div className="min-w-0">
+                <p className={`text-xs font-semibold ${tier.color}`}>{tier.name}</p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {(isTh ? "ระดับการสะสม" : "Stacker tier") + " · " + tier.rangeLabel}
+                </p>
+              </div>
+            </div>
+          )}
+
           {session?.user?.role === "ADMIN" && (
             <Link
               href="/admin"
