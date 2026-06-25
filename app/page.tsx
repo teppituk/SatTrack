@@ -5,10 +5,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp, Upload, BarChart2, Share2, Zap } from "lucide-react";
+import { useLocale } from "@/contexts/locale-context";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -33,18 +37,20 @@ export default function HomePage() {
             <TrendingUp className="h-6 w-6 text-blue-500" />
             <span className="text-xl font-bold">StackSat</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
             <Link
               href="/login"
               className="text-foreground hover:text-foreground transition-colors"
             >
-              Login
+              {t("home.login")}
             </Link>
             <Link
               href="/register"
               className="bg-blue-600 hover:bg-blue-700 text-foreground px-4 py-2 rounded-lg transition-colors"
             >
-              Get Started
+              {t("home.getStarted")}
             </Link>
           </div>
         </div>
@@ -55,25 +61,23 @@ export default function HomePage() {
         <section className="py-24 px-4 sm:px-6 lg:px-8 text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              Track Your Crypto Trades with AI
+              {t("home.heroTitle")}
             </h1>
             <p className="text-xl text-muted-foreground mb-10">
-              Upload slips from Bitkub, Binance TH, and Binance. Our AI
-              automatically reads and tracks your transactions, portfolio value,
-              and P&L — all in one place.
+              {t("home.heroSubtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
                 className="bg-blue-600 hover:bg-blue-700 text-foreground px-8 py-4 rounded-xl font-semibold text-lg transition-colors"
               >
-                Start Tracking Free
+                {t("home.startFree")}
               </Link>
               <Link
                 href="/login"
                 className="border border-border hover:border-border text-foreground px-8 py-4 rounded-xl font-semibold text-lg transition-colors"
               >
-                Sign In
+                {t("home.signIn")}
               </Link>
             </div>
           </div>
@@ -83,38 +87,38 @@ export default function HomePage() {
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-card">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12">
-              Everything You Need
+              {t("home.featuresTitle")}
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FeatureCard
                 icon={<Upload className="h-8 w-8 text-blue-400" />}
-                title="AI Slip OCR"
-                description="Upload JPG, PNG, or PDF slips from any Thai exchange. Claude AI reads and extracts all transaction data automatically."
+                title={t("home.feature1Title")}
+                description={t("home.feature1Desc")}
               />
               <FeatureCard
                 icon={<TrendingUp className="h-8 w-8 text-green-400" />}
-                title="Portfolio Dashboard"
-                description="Track your portfolio value in THB or USD. See unrealized P&L, cost basis, and allocation breakdown per coin."
+                title={t("home.feature2Title")}
+                description={t("home.feature2Desc")}
               />
               <FeatureCard
                 icon={<BarChart2 className="h-8 w-8 text-purple-400" />}
-                title="Buy/Sell Charts"
-                description="Visualize your trades on TradingView charts. See exactly when you bought and sold with price context."
+                title={t("home.feature3Title")}
+                description={t("home.feature3Desc")}
               />
               <FeatureCard
                 icon={<Share2 className="h-8 w-8 text-yellow-400" />}
-                title="Share Portfolio"
-                description="Generate private share links to show your portfolio to others. Control what data is visible and set expiry dates."
+                title={t("home.feature4Title")}
+                description={t("home.feature4Desc")}
               />
               <FeatureCard
                 icon={<Zap className="h-8 w-8 text-orange-400" />}
-                title="Lightning Payments"
-                description="Subscribe using Bitcoin Lightning Network via BTCPay Server for instant, low-fee payments."
+                title={t("home.feature5Title")}
+                description={t("home.feature5Desc")}
               />
               <FeatureCard
                 icon={<TrendingUp className="h-8 w-8 text-cyan-400" />}
-                title="Multi-Exchange"
-                description="Supports Bitkub, Binance TH, and Binance international. All your trades in one unified view."
+                title={t("home.feature6Title")}
+                description={t("home.feature6Desc")}
               />
             </div>
           </div>
@@ -123,16 +127,15 @@ export default function HomePage() {
         {/* CTA */}
         <section className="py-24 px-4 text-center">
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold mb-4">Ready to track smarter?</h2>
+            <h2 className="text-3xl font-bold mb-4">{t("home.ctaTitle")}</h2>
             <p className="text-muted-foreground mb-8">
-              Join thousands of Thai crypto traders who track their portfolio
-              with StackSat.
+              {t("home.ctaSubtitle")}
             </p>
             <Link
               href="/register"
               className="bg-blue-600 hover:bg-blue-700 text-foreground px-10 py-4 rounded-xl font-semibold text-lg transition-colors inline-block"
             >
-              Create Free Account
+              {t("home.ctaButton")}
             </Link>
           </div>
         </section>
@@ -140,7 +143,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4 text-center text-muted-foreground text-sm">
-        <p>© 2024 StackSat. All rights reserved.</p>
+        <p>{t("home.footer")}</p>
       </footer>
     </div>
   );
