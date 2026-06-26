@@ -1,4 +1,4 @@
-# Deploy StackSat to AWS (EC2 + Docker Compose)
+# Deploy StackSats to AWS (EC2 + Docker Compose)
 
 Target architecture for the first deployment:
 

@@ -7,10 +7,10 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "StackSat",
-    template: "%s · StackSat",
+    default: "StackSats",
+    template: "%s · StackSats",
   },
-  description: "StackSat — ติดตามการสะสม Bitcoin ของคุณ",
+  description: "StackSats — ติดตามการสะสม Bitcoin ของคุณ",
   icons: {
     icon: "/icon.svg",
   },

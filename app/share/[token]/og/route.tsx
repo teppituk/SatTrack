@@ -73,7 +73,7 @@ export async function GET(
           >
             B
           </div>
-          <div style={{ color: "#f7931a", fontSize: 40, fontWeight: 700 }}>StackSat</div>
+          <div style={{ color: "#f7931a", fontSize: 40, fontWeight: 700 }}>StackSats</div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -119,7 +119,7 @@ export async function GET(
               </div>
             ))}
           </div>
-          <div style={{ color: "#6b7280", fontSize: 28 }}>track yours at StackSat</div>
+          <div style={{ color: "#6b7280", fontSize: 28 }}>track yours at StackSats</div>
         </div>
       </div>
     ),
