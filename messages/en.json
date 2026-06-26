@@ -102,7 +102,8 @@
     "showingLast": "Showing last 10 transactions.",
     "viewAllChart": "View all in chart",
     "currency": "Currency",
-    "btcPrice": "Bitcoin Price"
+    "btcPrice": "Bitcoin Price",
+    "updatedAt": "Updated"
   },
   "upload": {
     "title": "Stack Bitcoin",

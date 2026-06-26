@@ -1,6 +1,7 @@
 "use client";
 
-import { Award } from "lucide-react";
+import Link from "next/link";
+import { Award, ChevronRight } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { useHolderTier } from "@/lib/use-holder-tier";
 
@@ -78,6 +79,15 @@ export function HolderTierCard() {
           </p>
         )}
       </div>
+
+      {/* ดูระดับทั้งหมด */}
+      <Link
+        href="/settings/tiers"
+        className="mt-4 flex items-center justify-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+      >
+        {isTh ? "ดูระดับทั้งหมด" : "View all tiers"}
+        <ChevronRight className="h-4 w-4" />
+      </Link>
     </div>
   );
 }
