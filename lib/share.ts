@@ -74,8 +74,43 @@ interface Tx {
   type: string;
   amount: number;
   totalValue: number;
+  currency: string;
   txDate: Date;
   coin: { symbol: string; name: string };
+}
+
+// อัตรา USD→THB (เสถียร: derive จากราคา BTC Bitkub/Binance → fallback CoinGecko → ค่าคงที่)
+async function fetchUsdThbRate(): Promise<number> {
+  try {
+    const [bk, bn] = await Promise.all([
+      fetch("https://api.bitkub.com/api/market/ticker", { next: { revalidate: 300 } })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+      fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT", {
+        next: { revalidate: 300 },
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ]);
+    const thb = Number(bk?.THB_BTC?.last) || 0;
+    const usd = Number(bn?.price) || 0;
+    if (thb && usd) return thb / usd;
+  } catch {}
+  try {
+    const key = process.env.COINGECKO_API_KEY;
+    const r = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=thb${
+        key ? `&x_cg_demo_api_key=${key}` : ""
+      }`,
+      { next: { revalidate: 300 } }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      const v = Number(d?.tether?.thb) || 0;
+      if (v) return v;
+    }
+  } catch {}
+  return 36; // last resort
 }
 
 export interface StackBadge {
@@ -108,6 +143,11 @@ export async function computeStats(transactions: Tx[]): Promise<StackStats> {
   let sellCount = 0;
   let firstTxDate: Date | null = null;
 
+  // แปลงทุกธุรกรรมเป็น THB (หน้า share แสดงเป็นบาท) — ธุรกรรม USD/USDT ต้องคูณ rate
+  const usdThbRate = await fetchUsdThbRate();
+  const toThb = (val: number, currency: string) =>
+    currency === "THB" ? val : val * usdThbRate;
+
   for (const tx of transactions) {
     const sym = tx.coin.symbol;
     if (!map.has(sym)) {
@@ -116,7 +156,7 @@ export async function computeStats(transactions: Tx[]): Promise<StackStats> {
     const h = map.get(sym)!;
     if (tx.type === "BUY") {
       h.amount += tx.amount;
-      h.totalCost += tx.totalValue;
+      h.totalCost += toThb(tx.totalValue, tx.currency);
       buyCount++;
     } else {
       h.amount -= tx.amount;
