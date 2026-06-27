@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, CheckCircle, AlertCircle, ImageIcon, X, Upload, RefreshCw } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, ImageIcon, X, Upload, RefreshCw, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 
 interface ExchangeOption {
@@ -49,6 +49,11 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // นำเข้าข้อมูลเก่าจาก Excel (.xlsx)
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [importErr, setImportErr] = useState<string | null>(null);
   // ราคาปัจจุบันของ BTC (ตาม currency) สำหรับ default ราคาต่อหน่วย
   const [livePrice, setLivePrice] = useState<{ THB: number; USD: number } | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
@@ -249,6 +254,38 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
     if (livePrice) applyPrice(livePrice.THB);
   };
 
+  // นำเข้าข้อมูลการซื้อขายเก่าจากไฟล์ Excel (.xlsx)
+  const handleImport = async (file: File | null) => {
+    if (!file) return;
+    if (!/\.xlsx$/i.test(file.name)) {
+      setImportErr("รองรับเฉพาะไฟล์ .xlsx");
+      return;
+    }
+    setImporting(true);
+    setImportMsg(null);
+    setImportErr(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/transactions/import", { method: "POST", body: fd });
+      const d = await res.json();
+      if (!res.ok) {
+        setImportErr(d.error || "นำเข้าไม่สำเร็จ");
+        return;
+      }
+      let msg = `นำเข้าสำเร็จ ${d.imported} รายการ`;
+      if (d.skipped) msg += ` · ข้าม ${d.skipped} รายการ`;
+      if (d.limitReached) msg += " (เกินโควต้าแผนฟรี 50/เดือน)";
+      setImportMsg(msg);
+      if (d.imported > 0) onSuccess?.(null);
+    } catch {
+      setImportErr("เกิดข้อผิดพลาดในการนำเข้า");
+    } finally {
+      setImporting(false);
+      if (importInputRef.current) importInputRef.current.value = "";
+    }
+  };
+
   // validate แล้วเปิด popup ยืนยัน
   const handleConfirmClick = () => {
     if (!formData.amount || formData.amount <= 0) {
@@ -429,6 +466,53 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
         <span className="text-lg">₿</span>
         <span>Stack Bitcoin — บันทึกรายการซื้อ/ขาย BTC</span>
       </div>
+
+      {/* นำเข้าข้อมูลเก่าจาก Excel */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-muted/40 border border-border">
+        <div className="text-xs text-muted-foreground">
+          <p className="font-medium text-foreground">นำเข้าข้อมูลเก่าจาก Excel</p>
+          <p>
+            คอลัมน์: Exchange, Type, Coin, Currency, จำนวน BTC, ราคาต่อหน่วย, มูลค่ารวม, วันที่ทำธุรกรรม (.xlsx)
+          </p>
+        </div>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          onChange={(e) => handleImport(e.target.files?.[0] ?? null)}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={() => importInputRef.current?.click()}
+          disabled={importing}
+          className="flex-shrink-0 flex items-center justify-center gap-2 bg-card border border-border hover:border-orange-500/50 text-foreground text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
+        >
+          {importing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              กำลังนำเข้า...
+            </>
+          ) : (
+            <>
+              <FileSpreadsheet className="h-4 w-4 text-green-500" />
+              อัปโหลดไฟล์ Excel
+            </>
+          )}
+        </button>
+      </div>
+      {importMsg && (
+        <div className="flex items-center gap-2 bg-green-950/40 border border-green-800 text-green-400 px-4 py-2.5 rounded-lg text-sm">
+          <CheckCircle className="h-4 w-4 flex-shrink-0" />
+          <span>{importMsg}</span>
+        </div>
+      )}
+      {importErr && (
+        <div className="flex items-center gap-2 bg-red-950 border border-red-800 text-red-400 px-4 py-2.5 rounded-lg text-sm">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>{importErr}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Exchange */}

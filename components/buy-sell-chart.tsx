@@ -1,265 +1,389 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 import {
-  createChart,
-  ColorType,
-  LineStyle,
-  IChartApi,
-  ISeriesApi,
-  SeriesMarker,
-  Time,
-} from "lightweight-charts";
+  ComposedChart,
+  Area,
+  Line,
+  Scatter,
+  ZAxis,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Brush,
+  ResponsiveContainer,
+} from "recharts";
 
-interface Transaction {
+interface Tx {
   id: string;
   type: "BUY" | "SELL";
-  price: number;
   amount: number;
+  price: number;
   totalValue: number;
   currency: string;
   txDate: string;
-  coin: { symbol: string };
 }
 
-// 5 ขนาดตาม threshold มูลค่า
-const TIERS = [
-  { label: "เล็ก",      thbMax: 1_000,    usdMax: 30,       size: 1   },
-  { label: "กลาง",      thbMax: 5_000,    usdMax: 153,      size: 2.5 },
-  { label: "กลางใหญ่", thbMax: 10_000,   usdMax: 306,      size: 4   },
-  { label: "ใหญ่",      thbMax: 100_000,  usdMax: 3_068,    size: 6   },
-  { label: "ใหญ่มาก",  thbMax: Infinity, usdMax: Infinity, size: 9   },
-] as const;
-
-function getTier(totalValue: number, currency: string) {
-  const isUSD = currency === "USD" || currency === "USDT";
-  return (
-    TIERS.find((t) => (isUSD ? totalValue < t.usdMax : totalValue < t.thbMax)) ??
-    TIERS[TIERS.length - 1]
-  );
+interface PricePoint {
+  t: number; // ms
+  p: number;
 }
+
+type Range = "1M" | "3M" | "1Y" | "5Y" | "ALL";
+const RANGE_DAYS: Record<Range, number | null> = {
+  "1M": 30,
+  "3M": 90,
+  "1Y": 365,
+  "5Y": 1825,
+  ALL: null,
+};
 
 interface BuySellChartProps {
-  transactions: Transaction[];
-  coinSymbol: string;
-  priceHistory?: Array<{ time: number; open: number; high: number; low: number; close: number }>;
+  transactions: Tx[];
+  priceHistory: PricePoint[];
+  currency: "THB" | "USD";
+  loading?: boolean;
 }
 
-export function BuySellChart({ transactions, coinSymbol, priceHistory }: BuySellChartProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+const ORANGE = "#f59e0b";
+const GREEN = "#34d399";
+const GRAY = "#94a3b8";
 
-  useEffect(() => {
-    if (!chartContainerRef.current) return;
+export function BuySellChart({
+  transactions,
+  priceHistory,
+  currency,
+  loading,
+}: BuySellChartProps) {
+  const [range, setRange] = useState<Range>("ALL");
+  const sym = currency === "USD" ? "$" : "฿"; // ฿ = baht; ₿ used for BTC below
 
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: "#0f172a" },
-        textColor: "#94a3b8",
-      },
-      grid: {
-        vertLines: { color: "#1e293b" },
-        horzLines: { color: "#1e293b" },
-      },
-      crosshair: {
-        mode: 1,
-        vertLine: {
-          width: 1,
-          color: "#3b82f6",
-          style: LineStyle.Dashed,
-          labelBackgroundColor: "#1d4ed8",
-        },
-        horzLine: {
-          color: "#3b82f6",
-          labelBackgroundColor: "#1d4ed8",
-        },
-      },
-      rightPriceScale: { borderColor: "#1e293b" },
-      timeScale: {
-        borderColor: "#1e293b",
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: 400,
-    });
+  const money = (v: number, dp = 0) =>
+    `${sym}${v.toLocaleString("en-US", { maximumFractionDigits: dp })}`;
+  const fmtBtc = (v: number) =>
+    v.toLocaleString("en-US", { maximumFractionDigits: v >= 1 ? 4 : 8 });
+  const fmtAxisMoney = (v: number) =>
+    v >= 1000 ? `${sym}${Math.round(v / 1000)}K` : `${sym}${Math.round(v)}`;
+  const fmtDate = (ms: number) =>
+    new Date(ms).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
-    chartRef.current = chart;
-
-    const lineSeries = chart.addLineSeries({
-      color: "#3b82f6",
-      lineWidth: 2,
-      priceLineVisible: false,
-      lastValueVisible: true,
-    });
-    seriesRef.current = lineSeries;
-
-    const sorted = [...transactions].sort(
-      (a, b) => new Date(a.txDate).getTime() - new Date(b.txDate).getTime()
-    );
-
-    // Build price line
-    if (priceHistory && priceHistory.length > 0) {
-      lineSeries.setData(priceHistory.map((p) => ({ time: p.time as Time, value: p.close })));
-    } else if (sorted.length > 0) {
-      const lineData = sorted.map((tx) => ({
-        time: Math.floor(new Date(tx.txDate).getTime() / 1000) as Time,
-        value: tx.price,
-      }));
-      const unique = lineData.filter(
-        (item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time
-      );
-      if (unique.length > 0) lineSeries.setData(unique);
+  // ── สถิติรวม (อิงทุกธุรกรรม) ──────────────────────────────
+  const stats = useMemo(() => {
+    let boughtAmt = 0,
+      boughtCost = 0,
+      soldAmt = 0,
+      buyCount = 0;
+    let firstBuy: number | null = null;
+    for (const tx of transactions) {
+      const ts = new Date(tx.txDate).getTime();
+      if (tx.type === "BUY") {
+        boughtAmt += tx.amount;
+        boughtCost += tx.totalValue;
+        buyCount++;
+        if (firstBuy === null || ts < firstBuy) firstBuy = ts;
+      } else {
+        soldAmt += tx.amount;
+      }
     }
-
-    // Build markers — ไม่มี text (ซ่อนไว้แสดงเฉพาะตอน hover)
-    if (sorted.length > 0) {
-      const markers: SeriesMarker<Time>[] = sorted.map((tx) => {
-        const tier = getTier(tx.totalValue, tx.currency);
-        return {
-          time: Math.floor(new Date(tx.txDate).getTime() / 1000) as Time,
-          position: tx.type === "BUY" ? "belowBar" : "aboveBar",
-          color: tx.type === "BUY" ? "#10b981" : "#ef4444",
-          shape: "circle",
-          text: "",   // ซ่อน label ทั้งหมด
-          size: tier.size,
-        };
-      });
-      lineSeries.setMarkers(markers);
-    }
-
-    chart.timeScale().fitContent();
-
-    // ─── Hover Tooltip ───────────────────────────────────────────
-    // สร้าง map: timestamp (วินาที) → transaction
-    const txByTime = new Map<number, Transaction>();
-    sorted.forEach((tx) => {
-      txByTime.set(Math.floor(new Date(tx.txDate).getTime() / 1000), tx);
-    });
-
-    chart.subscribeCrosshairMove((param) => {
-      const tooltip = tooltipRef.current;
-      const container = chartContainerRef.current;
-      if (!tooltip || !container) return;
-
-      if (!param.point) {
-        tooltip.style.display = "none";
-        return;
-      }
-
-      const crosshairX = param.point.x;
-      const crosshairY = param.point.y;
-
-      // หา marker ที่ใกล้เคียง crosshair ที่สุดในหน่วย pixel
-      let closest: Transaction | null = null;
-      let minPixelDist = Infinity;
-      txByTime.forEach((tx, t) => {
-        const markerX = chart.timeScale().timeToCoordinate(t as Time);
-        if (markerX === null) return;
-        const dist = Math.abs(markerX - crosshairX);
-        if (dist < minPixelDist) { minPixelDist = dist; closest = tx; }
-      });
-
-      // แสดง tooltip เฉพาะเมื่อ crosshair ห่างจาก marker ≤20px
-      const PIXEL_THRESHOLD = 20;
-      if (!closest || minPixelDist > PIXEL_THRESHOLD) {
-        tooltip.style.display = "none";
-        return;
-      }
-
-      const x = crosshairX;
-      const y = crosshairY;
-
-      const tx = closest as Transaction;
-      const tier = getTier(tx.totalValue, tx.currency);
-      const isBuy = tx.type === "BUY";
-      const date = new Date(tx.txDate).toLocaleString("th-TH", {
-        day: "2-digit", month: "short", year: "numeric",
-        hour: "2-digit", minute: "2-digit",
-      });
-
-      tooltip.innerHTML = `
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">${date}</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-          <span style="
-            background:${isBuy ? "#052e16" : "#450a0a"};
-            color:${isBuy ? "#4ade80" : "#f87171"};
-            padding:1px 7px;border-radius:9999px;font-size:11px;font-weight:600
-          ">${tx.type}</span>
-          <span style="color:#fff;font-weight:600">${tx.coin.symbol}</span>
-        </div>
-        <div style="font-size:12px;color:#e2e8f0">
-          จำนวน: <b>${tx.amount.toFixed(8).replace(/\.?0+$/, "")}</b>
-        </div>
-        <div style="font-size:12px;color:#e2e8f0">
-          ราคา: <b>${tx.price.toLocaleString("th-TH")} ${tx.currency}</b>
-        </div>
-        <div style="font-size:13px;color:#fff;margin-top:4px;font-weight:700">
-          มูลค่า: ${tx.totalValue.toLocaleString("th-TH")} ${tx.currency}
-        </div>
-        <div style="font-size:11px;color:${isBuy ? "#4ade80" : "#f87171"};margin-top:2px">
-          ● ${tier.label}
-        </div>
-      `;
-
-      // คำนวณตำแหน่ง tooltip ให้อยู่ในกรอบ chart
-      const tw = 200;
-      const th = 140;
-      const left = x + tw + 12 > container.clientWidth ? x - tw - 8 : x + 12;
-      const top  = y + th > container.clientHeight ? y - th : y;
-
-      tooltip.style.display = "block";
-      tooltip.style.left = `${left}px`;
-      tooltip.style.top = `${top}px`;
-    });
-
-    // Handle resize
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        chart.applyOptions({ width: entry.contentRect.width });
-      }
-    });
-    resizeObserver.observe(chartContainerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-      chart.remove();
-      chartRef.current = null;
-      seriesRef.current = null;
+    return {
+      totalBtc: boughtAmt - soldAmt,
+      avgCost: boughtAmt > 0 ? boughtCost / boughtAmt : 0,
+      buyCount,
+      firstBuy,
     };
-  }, [transactions, priceHistory]);
+  }, [transactions]);
+
+  // ใช้ราคาตลาดถ้ามี; ถ้าดึงไม่ได้ (เช่น CoinGecko rate-limit) fallback เป็นราคาจากธุรกรรมเอง
+  const series = useMemo<PricePoint[]>(() => {
+    if (priceHistory.length > 0) return priceHistory;
+    return transactions
+      .map((t) => ({ t: new Date(t.txDate).getTime(), p: t.price }))
+      .filter((p) => p.p > 0)
+      .sort((a, b) => a.t - b.t);
+  }, [priceHistory, transactions]);
+
+  // ── ช่วงเวลาเริ่มต้นตาม range ─────────────────────────────
+  const rangeStart = useMemo(() => {
+    const days = RANGE_DAYS[range];
+    if (days === null) {
+      const earliest = Math.min(
+        series[0]?.t ?? Date.now(),
+        stats.firstBuy ?? Date.now()
+      );
+      return earliest;
+    }
+    return Date.now() - days * 86400000;
+  }, [range, series, stats.firstBuy]);
+
+  // ── ข้อมูลเส้นราคา + ต้นทุนเฉลี่ยสะสม (stepped) ───────────
+  const priceData = useMemo(() => {
+    const buys = transactions
+      .filter((t) => t.type === "BUY")
+      .map((t) => ({ ts: new Date(t.txDate).getTime(), amt: t.amount, cost: t.totalValue }))
+      .sort((a, b) => a.ts - b.ts);
+
+    const pts = series.filter((p) => p.t >= rangeStart);
+    let bi = 0,
+      cumCost = 0,
+      cumAmt = 0;
+    return pts.map((pp) => {
+      while (bi < buys.length && buys[bi].ts <= pp.t) {
+        cumCost += buys[bi].cost;
+        cumAmt += buys[bi].amt;
+        bi++;
+      }
+      return {
+        t: pp.t,
+        price: pp.p,
+        avgCost: cumAmt > 0 ? cumCost / cumAmt : null,
+      };
+    });
+  }, [series, transactions, rangeStart]);
+
+  // ราคา ณ เวลาใกล้เคียง (วาง bubble ให้อยู่บนเส้น)
+  const priceAt = useMemo(() => {
+    const sorted = [...series].sort((a, b) => a.t - b.t);
+    return (ts: number) => {
+      if (sorted.length === 0) return 0;
+      let lo = 0,
+        hi = sorted.length - 1,
+        best = sorted[0];
+      let bestD = Infinity;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const d = Math.abs(sorted[mid].t - ts);
+        if (d < bestD) {
+          bestD = d;
+          best = sorted[mid];
+        }
+        if (sorted[mid].t < ts) lo = mid + 1;
+        else hi = mid - 1;
+      }
+      return best.p;
+    };
+  }, [series]);
+
+  const bubbles = useMemo(() => {
+    const inRange = transactions.filter(
+      (t) => new Date(t.txDate).getTime() >= rangeStart
+    );
+    const mk = (t: Tx) => ({
+      t: new Date(t.txDate).getTime(),
+      y: priceAt(new Date(t.txDate).getTime()) || t.price,
+      z: Math.max(t.amount, 1e-9),
+      amount: t.amount,
+      total: t.totalValue,
+      type: t.type,
+    });
+    return {
+      buys: inRange.filter((t) => t.type === "BUY").map(mk),
+      sells: inRange.filter((t) => t.type === "SELL").map(mk),
+    };
+  }, [transactions, rangeStart, priceAt]);
+
+  const hasData = priceData.length > 0;
 
   return (
-    <div className="relative">
-      {transactions.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 text-muted-foreground">
-          <div className="text-center">
-            <p>No transactions for {coinSymbol}</p>
-            <p className="text-sm mt-1">Upload slips to see your buy/sell points</p>
-          </div>
+    <div>
+      {/* Header สถิติ + ปุ่มช่วงเวลา */}
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+        <div>
+          <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            Bitcoin Reserve
+          </p>
+          <p className="text-4xl font-bold text-foreground mt-1">
+            ₿{fmtBtc(stats.totalBtc)}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Avg cost: {money(stats.avgCost)}
+            {stats.buyCount > 0 && (
+              <>
+                {" · "}
+                {stats.buyCount} purchase{stats.buyCount !== 1 ? "s" : ""}
+                {stats.firstBuy && (
+                  <>
+                    {" since "}
+                    {new Date(stats.firstBuy).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </>
+                )}
+              </>
+            )}
+          </p>
         </div>
+
+        <div className="flex items-center gap-1 bg-muted rounded-full p-1">
+          {(Object.keys(RANGE_DAYS) as Range[]).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                range === r
+                  ? "bg-orange-500 text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {r === "ALL" ? "All" : r}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* กราฟ */}
+      {loading ? (
+        <div className="h-[460px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+        </div>
+      ) : !hasData ? (
+        <div className="h-[460px] flex items-center justify-center text-muted-foreground text-sm">
+          ไม่มีข้อมูลราคา/ธุรกรรมในช่วงที่เลือก
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={460}>
+          <ComposedChart data={priceData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id="btcArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={ORANGE} stopOpacity={0.18} />
+                <stop offset="100%" stopColor={ORANGE} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="t"
+              type="number"
+              scale="time"
+              domain={["dataMin", "dataMax"]}
+              tickFormatter={fmtDate}
+              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              minTickGap={48}
+              tickLine={false}
+            />
+            <YAxis
+              tickFormatter={fmtAxisMoney}
+              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              width={56}
+              tickLine={false}
+              axisLine={false}
+            />
+            <ZAxis dataKey="z" range={[50, 800]} />
+            <Tooltip
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null;
+                const find = (k: string) =>
+                  payload.find((p) => p.dataKey === k)?.value as number | undefined;
+                const price = find("price");
+                const avg = find("avgCost");
+                const bub = payload.find((p) => p.dataKey === "y")?.payload as
+                  | { type: string; amount: number; total: number }
+                  | undefined;
+                return (
+                  <div className="bg-card border border-border rounded-lg px-3 py-2 text-xs shadow-lg">
+                    <div className="text-muted-foreground mb-1">
+                      {new Date(label as number).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </div>
+                    {price != null && (
+                      <div className="text-foreground">
+                        BTC: <b>{money(price, 0)}</b>
+                      </div>
+                    )}
+                    {avg != null && (
+                      <div style={{ color: GREEN }}>Avg cost: {money(avg, 0)}</div>
+                    )}
+                    {bub && (
+                      <div
+                        className="mt-1 pt-1 border-t border-border"
+                        style={{ color: bub.type === "BUY" ? ORANGE : GRAY }}
+                      >
+                        {bub.type === "BUY" ? "● Purchase" : "● Sale"}:{" "}
+                        <b>
+                          {bub.amount.toLocaleString("en-US", { maximumFractionDigits: 8 })} BTC
+                        </b>{" "}
+                        ({money(bub.total, 0)})
+                      </div>
+                    )}
+                  </div>
+                );
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="price"
+              stroke={ORANGE}
+              strokeWidth={2}
+              fill="url(#btcArea)"
+              dot={false}
+              isAnimationActive={false}
+              name="BTC Price"
+            />
+            <Line
+              type="stepAfter"
+              dataKey="avgCost"
+              stroke={GREEN}
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              dot={false}
+              connectNulls
+              isAnimationActive={false}
+              name="Avg Cost Basis"
+            />
+            <Scatter
+              data={bubbles.buys}
+              dataKey="y"
+              fill={ORANGE}
+              fillOpacity={0.75}
+              stroke={ORANGE}
+              isAnimationActive={false}
+              name="Purchase"
+            />
+            <Scatter
+              data={bubbles.sells}
+              dataKey="y"
+              fill={GRAY}
+              fillOpacity={0.7}
+              stroke={GRAY}
+              isAnimationActive={false}
+              name="Sale"
+            />
+            <Brush
+              dataKey="t"
+              height={34}
+              travellerWidth={8}
+              stroke={ORANGE}
+              tickFormatter={fmtDate}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
       )}
 
-      <div ref={chartContainerRef} className="w-full rounded-xl overflow-hidden" />
-
-      {/* Custom Tooltip */}
-      <div
-        ref={tooltipRef}
-        style={{
-          display: "none",
-          position: "absolute",
-          pointerEvents: "none",
-          zIndex: 20,
-          background: "#1e293b",
-          border: "1px solid #334155",
-          borderRadius: "10px",
-          padding: "10px 14px",
-          minWidth: "180px",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-        }}
-      />
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-5 h-0.5" style={{ background: ORANGE }} /> BTC Price
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="inline-block w-5 h-0 border-t-2 border-dashed"
+            style={{ borderColor: GREEN }}
+          />{" "}
+          Avg Cost Basis
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: ORANGE }} />{" "}
+          Purchase event (size = BTC amount)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: GRAY }} />{" "}
+          Sale event (size = BTC amount)
+        </span>
+      </div>
     </div>
   );
 }
