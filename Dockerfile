@@ -17,8 +17,9 @@ RUN npm ci
 
 # ---- Build ----
 COPY . .
-RUN npx prisma generate \
-  && npm run build
+RUN npx prisma generate
+# เพิ่ม heap ของ Node ตอน build (เลี่ยง OOM บนเครื่องเล็ก เช่น t3.micro ที่มี swap รองรับ)
+RUN NODE_OPTIONS=--max-old-space-size=2048 npm run build
 
 # Runtime defaults (NODE_ENV set AFTER build so dev deps remain installed)
 ENV NODE_ENV=production
