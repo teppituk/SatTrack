@@ -174,6 +174,8 @@ export function BuySellChart({
       z: Math.max(t.amount, 1e-9),
       amount: t.amount,
       total: t.totalValue,
+      // ราคาที่ซื้อจริงต่อหน่วย (ให้ amount × buyPrice = total เสมอ)
+      buyPrice: t.amount > 0 ? t.totalValue / t.amount : t.price,
       type: t.type,
     });
     return {
@@ -278,7 +280,7 @@ export function BuySellChart({
                 const price = find("price");
                 const avg = find("avgCost");
                 const bub = payload.find((p) => p.dataKey === "y")?.payload as
-                  | { type: string; amount: number; total: number }
+                  | { type: string; amount: number; total: number; buyPrice: number }
                   | undefined;
                 return (
                   <div className="bg-card border border-border rounded-lg px-3 py-2 text-xs shadow-lg">
@@ -306,7 +308,7 @@ export function BuySellChart({
                         <b>
                           {bub.amount.toLocaleString("en-US", { maximumFractionDigits: 8 })} BTC
                         </b>{" "}
-                        ({money(bub.total, 0)})
+                        @ {money(bub.buyPrice, 0)} = {money(bub.total, 0)}
                       </div>
                     )}
                   </div>
