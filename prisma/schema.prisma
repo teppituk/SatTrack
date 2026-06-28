@@ -7,12 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// key-value สำหรับ config ที่แก้ผ่านหน้า admin ได้ (เช่น BTCPay/Lightning)
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @default(now())
+}
+
 model User {
   id            String        @id @default(cuid())
   email         String        @unique
   password      String?
   name          String?
-  role          String        @default("CUSTOMER")
+  role          String        @default("CUSTOMER_FREE")
   isActive      Boolean       @default(true)
   plan          String        @default("free")
   planExpiresAt DateTime?
@@ -81,10 +88,16 @@ model ShareLink {
 model Subscription {
   id          String    @id @default(cuid())
   userId      String
-  invoiceId   String
+  invoiceId   String?
+  refCode     String?   @unique
+  planType    String?
   amountSats  Int
-  status      String    @default("pending")
+  status      String    @default("pending") // pending | paid | rejected | expired
+  note        String?
+  reviewedBy  String?
+  reviewedAt  DateTime?
   paidAt      DateTime?
+  createdAt   DateTime  @default(now())
   user        User      @relation(fields: [userId], references: [id])
 }
 

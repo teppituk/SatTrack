@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         plan: "free",
+        role: "CUSTOMER_FREE",
       },
       select: {
         id: true,

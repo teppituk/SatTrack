@@ -166,7 +166,6 @@ function RoleModal({
                   <span className="text-sm text-foreground">{item.label}</span>
                   <PermissionToggle
                     enabled={permissions[item.key]}
-                    disabled={isEdit && role?.isSystem}
                     onChange={(v) =>
                       setPermissions((prev) => ({ ...prev, [item.key]: v }))
                     }
@@ -175,8 +174,8 @@ function RoleModal({
               ))}
             </div>
             {isEdit && role?.isSystem && (
-              <p className="text-xs text-yellow-500/80 mt-3">
-                System role — สามารถแก้ไขชื่อแสดงผลได้ แต่ไม่สามารถเปลี่ยน permissions
+              <p className="text-xs text-muted-foreground mt-3">
+                System role — แก้ไขชื่อและ permissions ได้ แต่ลบไม่ได้
               </p>
             )}
           </div>

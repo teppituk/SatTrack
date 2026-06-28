@@ -11,6 +11,8 @@ import {
   User,
   KeyRound,
   Building2,
+  Zap,
+  Wallet,
 } from "lucide-react";
 
 export function AdminNav() {
@@ -22,6 +24,8 @@ export function AdminNav() {
     { href: "/admin/users", icon: Users, label: "User Management" },
     { href: "/admin/roles", icon: KeyRound, label: "Role Management" },
     { href: "/admin/exchanges", icon: Building2, label: "Exchange Management" },
+    { href: "/admin/payments", icon: Wallet, label: "Payments" },
+    { href: "/admin/settings", icon: Zap, label: "Payment Settings" },
   ];
 
   return (

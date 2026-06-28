@@ -1,8 +1,15 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { TrendingUp, TrendingDown, Coins, Lock, Clock } from "lucide-react";
-import { loadShare, parseShareConfig, computeStats } from "@/lib/share";
+import {
+  loadShare,
+  parseShareConfig,
+  computeStats,
+  fetchUsdThbRate,
+  fetchBtcHistoryThb,
+} from "@/lib/share";
 import { ShareActions } from "@/components/share-actions";
+import { BuySellChart } from "@/components/buy-sell-chart";
 
 function baseUrl() {
   return (
@@ -81,6 +88,37 @@ export default async function SharePage({
   const { holdings, totalValue, totalInvested, totalPnl, totalPnlPercent } = stats;
   const privacy = config.privacyMode;
   const ownerName = shareData.user.name || "Anonymous";
+
+  // ── ข้อมูลกราฟจุดซื้อ (เหมือนหน้า Chart) — แสดงเมื่อไม่ใช่ privacy mode ──
+  const showChart = !privacy && transactions.length > 0;
+  let chartTx: Array<{
+    id: string;
+    type: "BUY" | "SELL";
+    amount: number;
+    price: number;
+    totalValue: number;
+    currency: string;
+    txDate: string;
+  }> = [];
+  let chartHistory: Array<{ t: number; p: number }> = [];
+  if (showChart) {
+    const rate = await fetchUsdThbRate();
+    const toThb = (v: number, cur: string) => (cur === "THB" ? v : v * rate);
+    chartTx = transactions.map((t) => ({
+      id: t.id,
+      type: t.type as "BUY" | "SELL",
+      amount: t.amount,
+      price: toThb(t.price, t.currency),
+      totalValue: toThb(t.totalValue, t.currency),
+      currency: "THB",
+      txDate: new Date(t.txDate).toISOString(),
+    }));
+    const earliest = Math.min(
+      ...transactions.map((t) => new Date(t.txDate).getTime())
+    );
+    const days = Math.ceil((Date.now() - earliest) / 86400000) + 14;
+    chartHistory = await fetchBtcHistoryThb(days);
+  }
   const shareUrl = `${baseUrl()}/share/${token}`;
   const pnlColor = totalPnl >= 0 ? "text-green-400" : "text-red-400";
 
@@ -178,6 +216,17 @@ export default async function SharePage({
           <p className="text-center text-xs text-muted-foreground">
             🔒 Privacy mode — exact amounts are hidden, showing performance only.
           </p>
+        )}
+
+        {/* Buy/Sell Chart (เหมือนหน้า Chart) */}
+        {showChart && (
+          <div className="bg-card border border-border rounded-xl p-6">
+            <BuySellChart
+              transactions={chartTx}
+              priceHistory={chartHistory}
+              currency="THB"
+            />
+          </div>
         )}
 
         {/* Holdings */}

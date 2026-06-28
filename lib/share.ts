@@ -79,8 +79,32 @@ interface Tx {
   coin: { symbol: string; name: string };
 }
 
+// ราคา BTC ย้อนหลัง (THB) สำหรับกราฟในหน้า share — ล้มเหลว/rate-limit → คืน [] (กราฟ fallback ใช้ราคาธุรกรรม)
+export async function fetchBtcHistoryThb(
+  days: number
+): Promise<Array<{ t: number; p: number }>> {
+  try {
+    const key = process.env.COINGECKO_API_KEY;
+    const d = Math.min(Math.max(Math.round(days), 1), 3650);
+    const r = await fetch(
+      `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=thb&days=${d}${
+        key ? `&x_cg_demo_api_key=${key}` : ""
+      }`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!r.ok) return [];
+    const data = await r.json();
+    return (data.prices || []).map((pt: [number, number]) => ({
+      t: pt[0],
+      p: pt[1],
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // อัตรา USD→THB (เสถียร: derive จากราคา BTC Bitkub/Binance → fallback CoinGecko → ค่าคงที่)
-async function fetchUsdThbRate(): Promise<number> {
+export async function fetchUsdThbRate(): Promise<number> {
   try {
     const [bk, bn] = await Promise.all([
       fetch("https://api.bitkub.com/api/market/ticker", { next: { revalidate: 300 } })

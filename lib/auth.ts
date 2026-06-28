@@ -63,13 +63,21 @@ export const authOptions: NextAuthOptions = {
       if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, isActive: true },
+          select: { role: true, isActive: true, plan: true, planExpiresAt: true },
         });
         if (dbUser) {
-          token.role = dbUser.role;
+          // ปรับ role ตามอายุแผน (จ่ายแล้ว=CUSTOMER, หมดอายุ=CUSTOMER_FREE) — ทันทีใน request นี้
+          const { syncExpiredPlan } = await import("@/lib/subscription");
+          const effectiveRole = await syncExpiredPlan({
+            id: token.id as string,
+            plan: dbUser.plan,
+            planExpiresAt: dbUser.planExpiresAt,
+            role: dbUser.role,
+          });
+          token.role = effectiveRole;
           token.isActive = dbUser.isActive;
           const roleRecord = await prisma.role.findUnique({
-            where: { name: dbUser.role },
+            where: { name: effectiveRole },
             select: { permissions: true },
           });
           token.permissions = (roleRecord?.permissions as unknown as import("@/types/next-auth").RolePermissions) ?? null;

@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/nav";
+import { useLocale } from "@/contexts/locale-context";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Zap,
   CheckCircle,
@@ -12,23 +14,39 @@ import {
   Crown,
   Calendar,
   Bitcoin,
+  Copy,
+  Check,
 } from "lucide-react";
+
+interface SubItem {
+  id: string;
+  refCode: string | null;
+  planType: string | null;
+  amountSats: number;
+  status: string;
+  paidAt: string | null;
+  createdAt: string;
+}
 
 interface SubscriptionData {
   currentPlan: string;
   planExpiresAt: string | null;
   isActive: boolean;
-  subscriptions: Array<{
-    id: string;
-    invoiceId: string;
-    amountSats: number;
-    status: string;
-    paidAt: string | null;
-  }>;
+  subscriptions: SubItem[];
   plans: {
     monthly: { amountSats: number; label: string; durationDays: number };
     annual: { amountSats: number; label: string; durationDays: number };
   };
+  lightningAddress: string;
+  pending: SubItem | null;
+}
+
+interface PayInfo {
+  subscriptionId: string;
+  refCode: string;
+  lightningAddress: string;
+  amountSats: number;
+  planType: string;
 }
 
 function SubscriptionContent() {
@@ -36,11 +54,16 @@ function SubscriptionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const paymentStatus = searchParams.get("status");
+  const { t } = useLocale();
 
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaying, setIsPaying] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [payInfo, setPayInfo] = useState<PayInfo | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [invoice, setInvoice] = useState<string | null>(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -51,6 +74,34 @@ function SubscriptionContent() {
       fetchSubscription();
     }
   }, [status]);
+
+  // ดึง Lightning invoice (bolt11) ฝังจำนวน+memo สำหรับ QR เมื่อมีคำขอ pending
+  const pendingSubId = payInfo?.subscriptionId ?? data?.pending?.id ?? null;
+  useEffect(() => {
+    if (!pendingSubId) {
+      setInvoice(null);
+      return;
+    }
+    let active = true;
+    setInvoice(null);
+    setInvoiceLoading(true);
+    fetch("/api/subscription/invoice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscriptionId: pendingSubId }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (active) setInvoice(d?.invoice ?? null);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setInvoiceLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [pendingSubId]);
 
   const fetchSubscription = async () => {
     try {
@@ -80,16 +131,21 @@ function SubscriptionContent() {
       const d = await res.json();
 
       if (!res.ok) {
-        setError(d.error || "Failed to create invoice");
+        setError(d.error || t("subscription.notConfigured"));
         return;
       }
 
-      // Redirect to BTCPay checkout
-      if (d.checkoutLink) {
-        window.location.href = d.checkoutLink;
-      }
+      // แสดง QR + memo ให้ผู้ใช้โอนผ่าน Wallet of Satoshi
+      setPayInfo({
+        subscriptionId: d.subscriptionId,
+        refCode: d.refCode,
+        lightningAddress: d.lightningAddress,
+        amountSats: d.amountSats,
+        planType: d.planType,
+      });
+      fetchSubscription();
     } catch {
-      setError("An unexpected error occurred");
+      setError(t("subscription.errUnexpected"));
     } finally {
       setIsPaying(null);
     }
@@ -107,6 +163,26 @@ function SubscriptionContent() {
 
   const isPaid = data?.isActive;
 
+  // panel ชำระเงิน: จากที่เพิ่งกด หรือจาก pending request เดิม
+  const activePay: PayInfo | null =
+    payInfo ??
+    (data?.pending && data.lightningAddress
+      ? {
+          subscriptionId: data.pending.id,
+          refCode: data.pending.refCode || "",
+          lightningAddress: data.lightningAddress,
+          amountSats: data.pending.amountSats,
+          planType: data.pending.planType || "",
+        }
+      : null);
+
+  const copyMemo = () => {
+    if (!activePay) return;
+    navigator.clipboard.writeText(activePay.refCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto">
@@ -116,8 +192,8 @@ function SubscriptionContent() {
             <Zap className="h-5 w-5 text-yellow-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Subscription</h1>
-            <p className="text-muted-foreground text-sm">Manage your plan</p>
+            <h1 className="text-2xl font-bold text-foreground">{t("subscription.title")}</h1>
+            <p className="text-muted-foreground text-sm">{t("subscription.subtitle")}</p>
           </div>
         </div>
 
@@ -126,9 +202,9 @@ function SubscriptionContent() {
           <div className="flex items-center gap-3 bg-green-950 border border-green-800 rounded-xl p-4 mb-6">
             <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
             <div>
-              <p className="font-medium text-green-300">Payment received!</p>
+              <p className="font-medium text-green-300">{t("subscription.paymentReceived")}</p>
               <p className="text-green-400/80 text-sm">
-                Your subscription will be activated within a few minutes.
+                {t("subscription.paymentReceivedDesc")}
               </p>
             </div>
           </div>
@@ -147,28 +223,28 @@ function SubscriptionContent() {
               <Zap className="h-6 w-6 text-muted-foreground" />
             )}
             <h2 className="text-lg font-semibold text-foreground">
-              {isPaid ? "Paid Plan Active" : "Free Plan"}
+              {isPaid ? t("subscription.paidPlanActive") : t("subscription.freePlan")}
             </h2>
           </div>
           {isPaid ? (
             <div className="flex items-center gap-2 text-yellow-300 text-sm">
               <Calendar className="h-4 w-4" />
               <span>
-                Expires{" "}
+                {t("subscription.expires")}{" "}
                 {data?.planExpiresAt
                   ? new Date(data.planExpiresAt).toLocaleDateString("en-GB", {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
                     })
-                  : "never"}
+                  : t("subscription.never")}
               </span>
             </div>
           ) : (
             <div className="space-y-1 text-muted-foreground text-sm">
-              <p>You are on the free plan with limited features.</p>
+              <p>{t("subscription.freeDesc1")}</p>
               <p className="text-muted-foreground">
-                Free: up to 50 transactions/month · Paid: unlimited + all features
+                {t("subscription.freeDesc2")}
               </p>
             </div>
           )}
@@ -182,32 +258,88 @@ function SubscriptionContent() {
           </div>
         )}
 
+        {/* Payment panel (Wallet of Satoshi) */}
+        {!isPaid && activePay && (
+          <div className="bg-card border border-blue-600/50 rounded-xl p-6 mb-8">
+            <h2 className="text-lg font-semibold text-foreground mb-1">{t("subscription.payTitle")}</h2>
+            <p className="text-sm text-muted-foreground mb-4">{t("subscription.scanQr")}</p>
+            <div className="flex flex-col items-center">
+              <div className="bg-white rounded-xl p-4 flex items-center justify-center" style={{ width: 232, height: 232 }}>
+                {invoiceLoading ? (
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                ) : (
+                  <QRCodeSVG
+                    value={invoice ? `lightning:${invoice}` : activePay.lightningAddress}
+                    size={200}
+                    level="M"
+                    marginSize={2}
+                  />
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-2">
+                {invoice ? t("subscription.invoiceReady") : t("subscription.invoiceFallback")}
+              </p>
+              <div className="w-full mt-4 space-y-3 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">{t("subscription.sendTo")}</p>
+                  <p className="text-foreground font-mono break-all">{activePay.lightningAddress}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{t("subscription.amountLabel")}</p>
+                  <p className="text-foreground font-semibold">
+                    {activePay.amountSats.toLocaleString()} sats
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{t("subscription.memoLabel")}</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 text-foreground font-mono">
+                      {activePay.refCode}
+                    </code>
+                    <button
+                      onClick={copyMemo}
+                      className="p-2 bg-muted hover:bg-accent border border-border rounded-lg text-muted-foreground hover:text-foreground"
+                      title={t("subscription.copy")}
+                    >
+                      {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">{t("subscription.memoHelp")}</p>
+                </div>
+              </div>
+              <div className="w-full mt-4 flex items-center gap-2 bg-yellow-950/30 border border-yellow-800/50 text-yellow-400 rounded-lg px-3 py-2 text-xs">
+                <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+                {t("subscription.pendingReview")}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Plans */}
-        {!isPaid && (
+        {!isPaid && !activePay && (
           <div className="space-y-4 mb-8">
-            <h2 className="text-lg font-semibold text-foreground">Choose a Plan</h2>
+            <h2 className="text-lg font-semibold text-foreground">{t("subscription.choosePlan")}</h2>
 
             {/* Monthly */}
             <div className="bg-card border border-border hover:border-blue-600 rounded-xl p-6 transition-colors">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold text-foreground">Monthly Plan</h3>
-                  <p className="text-muted-foreground text-sm">Billed monthly</p>
+                  <h3 className="font-semibold text-foreground">{t("subscription.monthlyPlan")}</h3>
+                  <p className="text-muted-foreground text-sm">{t("subscription.billedMonthly")}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-foreground">
                     {data?.plans.monthly.amountSats?.toLocaleString()} sats
                   </p>
-                  <p className="text-muted-foreground text-xs">≈ Lightning payment</p>
+                  <p className="text-muted-foreground text-xs">{t("subscription.lightningApprox")}</p>
                 </div>
               </div>
               <ul className="space-y-2 mb-4 text-sm text-foreground">
                 {[
-                  "Unlimited transactions",
-                  "Full AI OCR access",
-                  "Portfolio sharing",
-                  "Advanced charts",
-                  "Priority support",
+                  t("subscription.featUnlimited"),
+                  t("subscription.featAiReader"),
+                  t("subscription.featSharing"),
+                  t("subscription.featChart"),
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
@@ -223,12 +355,12 @@ function SubscriptionContent() {
                 {isPaying === "monthly" ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating invoice...
+                    {t("subscription.creatingInvoice")}
                   </>
                 ) : (
                   <>
                     <Bitcoin className="h-4 w-4" />
-                    Pay with Lightning
+                    {t("subscription.payWithLightning")}
                   </>
                 )}
               </button>
@@ -237,26 +369,25 @@ function SubscriptionContent() {
             {/* Annual */}
             <div className="bg-card border border-yellow-700/50 rounded-xl p-6 relative overflow-hidden">
               <div className="absolute top-3 right-3 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
-                BEST VALUE
+                {t("subscription.bestValue")}
               </div>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold text-foreground">Annual Plan</h3>
-                  <p className="text-muted-foreground text-sm">Save vs monthly</p>
+                  <h3 className="font-semibold text-foreground">{t("subscription.annualPlan")}</h3>
+                  <p className="text-muted-foreground text-sm">{t("subscription.saveVsMonthly")}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-foreground">
                     {data?.plans.annual.amountSats?.toLocaleString()} sats
                   </p>
-                  <p className="text-muted-foreground text-xs">one-time payment</p>
+                  <p className="text-muted-foreground text-xs">{t("subscription.oneTimePayment")}</p>
                 </div>
               </div>
               <ul className="space-y-2 mb-4 text-sm text-foreground">
                 {[
-                  "Everything in Monthly",
-                  "12 months of access",
-                  "Early access to new features",
-                  "Dedicated support",
+                  t("subscription.featEverythingMonthly"),
+                  t("subscription.feat12months"),
+                  t("subscription.featSave"),
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-yellow-400 flex-shrink-0" />
@@ -272,12 +403,12 @@ function SubscriptionContent() {
                 {isPaying === "annual" ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating invoice...
+                    {t("subscription.creatingInvoice")}
                   </>
                 ) : (
                   <>
                     <Zap className="h-4 w-4" />
-                    Pay with Lightning
+                    {t("subscription.payWithLightning")}
                   </>
                 )}
               </button>
@@ -290,10 +421,9 @@ function SubscriptionContent() {
           <div className="flex items-center gap-3">
             <Bitcoin className="h-6 w-6 text-orange-400 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-foreground">Bitcoin Lightning Network</p>
+              <p className="font-medium text-foreground">{t("subscription.methodTitle")}</p>
               <p className="text-muted-foreground">
-                Instant payments via BTCPay Server. Pay with any Lightning wallet
-                (Wallet of Satoshi, Phoenix, Muun, etc.)
+                {t("subscription.methodDesc")}
               </p>
             </div>
           </div>
@@ -302,7 +432,7 @@ function SubscriptionContent() {
         {/* Payment History */}
         {data?.subscriptions && data.subscriptions.length > 0 && (
           <div className="bg-card border border-border rounded-xl p-6">
-            <h2 className="font-semibold text-foreground mb-4">Payment History</h2>
+            <h2 className="font-semibold text-foreground mb-4">{t("subscription.paymentHistory")}</h2>
             <div className="space-y-3">
               {data.subscriptions.map((sub) => (
                 <div
@@ -311,12 +441,12 @@ function SubscriptionContent() {
                 >
                   <div>
                     <p className="text-sm text-foreground font-mono">
-                      {sub.invoiceId.slice(0, 16)}...
+                      {sub.refCode || "—"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {sub.paidAt
                         ? new Date(sub.paidAt).toLocaleDateString()
-                        : "Pending"}
+                        : t("subscription.pending")}
                     </p>
                   </div>
                   <div className="text-right">
@@ -332,7 +462,11 @@ function SubscriptionContent() {
                           : "bg-yellow-900/50 text-yellow-400"
                       }`}
                     >
-                      {sub.status}
+                      {sub.status === "paid"
+                        ? t("subscription.statusPaid")
+                        : sub.status === "expired"
+                        ? t("subscription.statusExpired")
+                        : t("subscription.statusPending")}
                     </span>
                   </div>
                 </div>
