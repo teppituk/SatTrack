@@ -39,6 +39,15 @@ export async function GET() {
 
   const pending = subscriptions.find((s) => s.status === "pending") ?? null;
 
+  // sync จำนวน sats ของคำขอ pending ให้ตรง config ปัจจุบัน (เผื่อ admin แก้ราคา)
+  if (pending) {
+    const want = pending.planType === "annual" ? cfg.annualSats : cfg.monthlySats;
+    if (pending.amountSats !== want) {
+      await prisma.subscription.update({ where: { id: pending.id }, data: { amountSats: want } });
+      pending.amountSats = want;
+    }
+  }
+
   return NextResponse.json({
     currentPlan: active ? "paid" : "free",
     planExpiresAt: user?.planExpiresAt,
@@ -71,21 +80,27 @@ export async function POST(request: NextRequest) {
     }
     const amountSats = planType === "annual" ? cfg.annualSats : cfg.monthlySats;
 
-    // มีคำขอ pending ของแผนเดียวกันอยู่แล้ว → ใช้ตัวเดิม (ไม่สร้างซ้ำ)
+    // มีคำขอ pending ของแผนเดียวกันอยู่แล้ว → ใช้ตัวเดิม (อัปเดต amount ให้ตรง config ปัจจุบัน)
     const existing = await prisma.subscription.findFirst({
       where: { userId: session.user.id, planType, status: "pending" },
+      orderBy: { createdAt: "desc" },
     });
-    const sub =
-      existing ??
-      (await prisma.subscription.create({
-        data: {
-          userId: session.user.id,
-          refCode: genRefCode(),
-          planType,
-          amountSats,
-          status: "pending",
-        },
-      }));
+    const sub = existing
+      ? existing.amountSats === amountSats
+        ? existing
+        : await prisma.subscription.update({
+            where: { id: existing.id },
+            data: { amountSats },
+          })
+      : await prisma.subscription.create({
+          data: {
+            userId: session.user.id,
+            refCode: genRefCode(),
+            planType,
+            amountSats,
+            status: "pending",
+          },
+        });
 
     return NextResponse.json({
       subscriptionId: sub.id,

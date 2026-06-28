@@ -46,3 +46,40 @@ export async function fetchLightningInvoice(
   }
   return inv.pr; // bolt11
 }
+
+// อ่านเวลาหมดอายุของ bolt11 invoice → epoch ms (คืน null ถ้าถอดรหัสไม่ได้)
+export function getInvoiceExpiry(bolt11: string): number | null {
+  try {
+    const CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
+    const sep = bolt11.lastIndexOf("1");
+    if (sep < 0) return null;
+    const data = bolt11.slice(sep + 1, -6); // ตัด checksum 6 ตัวท้าย
+    const v: number[] = [];
+    for (const c of data) {
+      const idx = CHARSET.indexOf(c.toLowerCase());
+      if (idx < 0) return null;
+      v.push(idx);
+    }
+    if (v.length < 7) return null;
+    let ts = 0;
+    for (let i = 0; i < 7; i++) ts = ts * 32 + v[i]; // timestamp = 7 symbols แรก (35 bit)
+    let i = 7;
+    let expiry = 3600; // ค่า default ตาม BOLT11
+    while (i + 3 <= v.length) {
+      const type = v[i];
+      const len = v[i + 1] * 32 + v[i + 2];
+      const start = i + 3;
+      if (start + len > v.length) break;
+      if (type === 6) {
+        // tag 'x' = expiry (วินาที)
+        let e = 0;
+        for (let k = 0; k < len; k++) e = e * 32 + v[start + k];
+        expiry = e;
+      }
+      i = start + len;
+    }
+    return (ts + expiry) * 1000;
+  } catch {
+    return null;
+  }
+}

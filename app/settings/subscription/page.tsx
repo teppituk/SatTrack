@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/nav";
@@ -64,6 +64,7 @@ function SubscriptionContent() {
   const [copied, setCopied] = useState(false);
   const [invoice, setInvoice] = useState<string | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const invoiceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -76,6 +77,7 @@ function SubscriptionContent() {
   }, [status]);
 
   // ดึง Lightning invoice (bolt11) ฝังจำนวน+memo สำหรับ QR เมื่อมีคำขอ pending
+  // + regen QR อัตโนมัติก่อน invoice หมดอายุ และเมื่อกลับมาโฟกัสแท็บ
   const pendingSubId = payInfo?.subscriptionId ?? data?.pending?.id ?? null;
   useEffect(() => {
     if (!pendingSubId) {
@@ -83,23 +85,48 @@ function SubscriptionContent() {
       return;
     }
     let active = true;
-    setInvoice(null);
-    setInvoiceLoading(true);
-    fetch("/api/subscription/invoice", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subscriptionId: pendingSubId }),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (active) setInvoice(d?.invoice ?? null);
-      })
-      .catch(() => {})
-      .finally(() => {
+
+    const load = async () => {
+      setInvoiceLoading(true);
+      try {
+        const r = await fetch("/api/subscription/invoice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subscriptionId: pendingSubId }),
+        });
+        const d = r.ok ? await r.json() : null;
+        if (!active) return;
+        setInvoice(d?.invoice ?? null);
+
+        // ตั้งเวลาขอ invoice ใหม่ ~30 วิ ก่อนหมดอายุ (กันค้างจาก timer ที่ถูก throttle ตอนแท็บอยู่เบื้องหลัง)
+        if (invoiceTimer.current) clearTimeout(invoiceTimer.current);
+        if (d?.expiresAt) {
+          const delay = d.expiresAt - Date.now() - 30_000;
+          invoiceTimer.current = setTimeout(load, Math.max(delay, 10_000));
+        }
+      } catch {
+        if (active) setInvoice(null);
+      } finally {
         if (active) setInvoiceLoading(false);
-      });
+      }
+    };
+
+    // ถ้ากลับมาโฟกัสแท็บ → เช็ก/ขอ invoice ใหม่ทันที (เผื่อหมดอายุระหว่างที่ทิ้งหน้าไว้)
+    const onFocus = () => {
+      if (active) load();
+    };
+
+    setInvoice(null);
+    load();
+    window.addEventListener("focus", onFocus);
+
     return () => {
       active = false;
+      window.removeEventListener("focus", onFocus);
+      if (invoiceTimer.current) {
+        clearTimeout(invoiceTimer.current);
+        invoiceTimer.current = null;
+      }
     };
   }, [pendingSubId]);
 
@@ -264,14 +291,14 @@ function SubscriptionContent() {
             <h2 className="text-lg font-semibold text-foreground mb-1">{t("subscription.payTitle")}</h2>
             <p className="text-sm text-muted-foreground mb-4">{t("subscription.scanQr")}</p>
             <div className="flex flex-col items-center">
-              <div className="bg-white rounded-xl p-4 flex items-center justify-center" style={{ width: 232, height: 232 }}>
+              <div className="bg-white rounded-xl p-4 flex items-center justify-center" style={{ width: 264, height: 264 }}>
                 {invoiceLoading ? (
                   <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                 ) : (
                   <QRCodeSVG
                     value={invoice ? `lightning:${invoice}` : activePay.lightningAddress}
-                    size={200}
-                    level="M"
+                    size={232}
+                    level="L"
                     marginSize={2}
                   />
                 )}
@@ -280,10 +307,6 @@ function SubscriptionContent() {
                 {invoice ? t("subscription.invoiceReady") : t("subscription.invoiceFallback")}
               </p>
               <div className="w-full mt-4 space-y-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">{t("subscription.sendTo")}</p>
-                  <p className="text-foreground font-mono break-all">{activePay.lightningAddress}</p>
-                </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{t("subscription.amountLabel")}</p>
                   <p className="text-foreground font-semibold">
@@ -315,8 +338,8 @@ function SubscriptionContent() {
           </div>
         )}
 
-        {/* Plans */}
-        {!isPaid && !activePay && (
+        {/* Plans — แสดง 2 แพ็คเกจเสมอ (เมื่อยังไม่ paid) */}
+        {!isPaid && (
           <div className="space-y-4 mb-8">
             <h2 className="text-lg font-semibold text-foreground">{t("subscription.choosePlan")}</h2>
 
@@ -337,7 +360,6 @@ function SubscriptionContent() {
               <ul className="space-y-2 mb-4 text-sm text-foreground">
                 {[
                   t("subscription.featUnlimited"),
-                  t("subscription.featAiReader"),
                   t("subscription.featSharing"),
                   t("subscription.featChart"),
                 ].map((f) => (

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getPaymentConfig } from "@/lib/payments";
-import { fetchLightningInvoice } from "@/lib/lnurl";
+import { fetchLightningInvoice, getInvoiceExpiry } from "@/lib/lnurl";
 
 // POST { subscriptionId } — สร้าง Lightning invoice (bolt11) ฝังจำนวน + memo(refCode)
 export async function POST(req: NextRequest) {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       sub.amountSats,
       sub.refCode
     );
-    return NextResponse.json({ invoice });
+    return NextResponse.json({ invoice, expiresAt: getInvoiceExpiry(invoice) });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Failed to create invoice" },
