@@ -294,5 +294,32 @@
     "usd": "ดอลลาร์",
     "noTransactions": "ยังไม่มีธุรกรรม",
     "noTransactionsDesc": "อัพโหลดสลิปแรกของคุณเพื่อเริ่มต้น"
+  },
+  "exchanges": {
+    "title": "เชื่อมต่อ Exchange",
+    "subtitle": "ดึงประวัติเทรด BTC อัตโนมัติด้วย API key แบบอ่านอย่างเดียว",
+    "proTitle": "การเชื่อมต่อ Exchange เป็นฟีเจอร์ Pro",
+    "proDesc": "อัปเกรดเป็น Pro เพื่อเชื่อมบัญชี exchange และดึงประวัติเทรดอัตโนมัติ",
+    "upgrade": "อัปเกรดเป็น Pro",
+    "readOnlyHint": "แนะนำ: สร้าง API key แบบอ่านอย่างเดียว (ปิดสิทธิ์ถอน/เทรด) เพื่อความปลอดภัย",
+    "apiKey": "API Key",
+    "apiSecret": "API Secret",
+    "label": "ป้ายกำกับ (ไม่บังคับ)",
+    "connect": "เชื่อมต่อ",
+    "connecting": "กำลังเชื่อมต่อ...",
+    "connected": "เชื่อมต่อแล้ว",
+    "notConnected": "ยังไม่เชื่อมต่อ",
+    "comingSoon": "เร็ว ๆ นี้",
+    "syncNow": "ซิงค์เลย",
+    "syncing": "กำลังซิงค์...",
+    "remove": "ลบ",
+    "removeConfirm": "ลบการเชื่อมต่อนี้? ข้อมูลที่ซิงค์มาแล้วจะยังอยู่",
+    "lastSync": "ซิงค์ล่าสุด",
+    "never": "ยังไม่เคย",
+    "statusOk": "สำเร็จ",
+    "statusError": "ผิดพลาด",
+    "newTrades": "รายการใหม่",
+    "noNew": "ไม่มีรายการใหม่",
+    "encNotReady": "เซิร์ฟเวอร์ยังไม่ได้ตั้งค่าการเข้ารหัส"
   }
 }

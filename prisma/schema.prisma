@@ -31,6 +31,7 @@ model User {
   subscriptions Subscription[]
   accounts      Account[]
   sessions      Session[]
+  exchangeApiKeys ExchangeApiKey[]
 }
 
 model Role {
@@ -71,9 +72,33 @@ model Transaction {
   exchange     String   // bitkub, binanceth, binance, set, nyse, nasdaq, ...
   txDate       DateTime
   slipImageUrl String?
+  externalId   String?  // trade id จาก exchange (สำหรับ sync)
+  source       String   @default("manual") // manual | import | sync
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id])
   coin         Coin     @relation(fields: [coinId], references: [id])
+
+  // กันบันทึกซ้ำตอน sync ซ้ำ (externalId = null สำหรับ manual/import → ไม่ชนกันใน Postgres)
+  @@unique([userId, exchange, externalId])
+}
+
+// API key ของ user ต่อ exchange — secret เก็บแบบเข้ารหัส AES-256-GCM
+model ExchangeApiKey {
+  id             String    @id @default(cuid())
+  userId         String
+  exchange       String    // bitkub | binanceth | binance
+  apiKeyEnc      String    // เข้ารหัส
+  apiSecretEnc   String    // เข้ารหัส
+  keyHint        String?   // 4 ตัวท้ายของ apiKey สำหรับโชว์ (••••1234)
+  label          String?
+  lastSyncAt     DateTime?
+  lastSyncStatus String?   // ok | error | running
+  lastSyncError  String?
+  lastSyncCount  Int       @default(0)
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exchange])
 }
 
 model ShareLink {
