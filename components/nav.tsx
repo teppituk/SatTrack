@@ -58,7 +58,7 @@ export function Nav() {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-14 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Bitcoin className="h-5 w-5 text-orange-400" />
-          <span className="font-bold text-foreground">StackSats</span>
+          <span className="font-bold text-foreground">KebSats</span>
         </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -88,7 +88,7 @@ export function Nav() {
         {/* Logo */}
         <div className="h-16 flex items-center gap-2 px-6 border-b border-border">
           <Bitcoin className="h-6 w-6 text-orange-400" />
-          <span className="text-lg font-bold text-foreground">StackSats</span>
+          <span className="text-lg font-bold text-foreground">KebSats</span>
         </div>
 
         {/* Navigation */}

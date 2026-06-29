@@ -35,7 +35,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-blue-500" />
-            <span className="text-xl font-bold">StackSats</span>
+            <span className="text-xl font-bold">KebSats</span>
           </div>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />

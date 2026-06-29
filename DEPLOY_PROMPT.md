@@ -1,4 +1,4 @@
-# StackSats — Deploy Prompt (พร้อมก๊อปไปวางใช้ครั้งหน้า)
+# KebSats — Deploy Prompt (พร้อมก๊อปไปวางใช้ครั้งหน้า)
 
 ก๊อปข้อความในกล่องด้านล่างทั้งหมดไปวางใน Claude Code (ที่ root ของ repo นี้) เพื่อ deploy ซ้ำ
 ค่าทั้งหมดอิงจาก deployment ที่ทำงานได้จริง (Thailand region + CloudFront)
@@ -9,7 +9,7 @@
 ---
 
 ```
-ช่วย deploy แอป StackSats (Next.js 15 + Prisma + BullMQ worker) ขึ้น AWS ตามสเปกนี้ทั้งหมด ทำให้จบและทดสอบให้เข้าได้จริง:
+ช่วย deploy แอป KebSats (Next.js 15 + Prisma + BullMQ worker) ขึ้น AWS ตามสเปกนี้ทั้งหมด ทำให้จบและทดสอบให้เข้าได้จริง:
 
 [Identity & Region]
 - ใช้ AWS CLI user teppituk.dev (ยืนยันด้วย aws sts get-caller-identity ก่อน อย่าใช้ root)

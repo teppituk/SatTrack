@@ -15,7 +15,7 @@ export function ShareActions({ url, text, variant = "full" }: ShareActionsProps)
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
-  const shareText = text || "Check out my Bitcoin stack on StackSats";
+  const shareText = text || "Check out my Bitcoin stack on KebSats";
   const encUrl = encodeURIComponent(url);
   const encText = encodeURIComponent(shareText);
 
