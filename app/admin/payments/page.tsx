@@ -43,6 +43,8 @@ export default function AdminPaymentsPage() {
         body: JSON.stringify({ id, action }),
       });
       await load();
+      // แจ้ง nav ให้รีเฟรช badge จำนวน pending ทันที
+      window.dispatchEvent(new Event("payments:updated"));
     } finally {
       setBusy(null);
     }

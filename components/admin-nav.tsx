@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -18,13 +19,38 @@ import {
 export function AdminNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [pendingPayments, setPendingPayments] = useState(0);
+
+  // ดึงจำนวนคำขอชำระเงินที่รออนุมัติ → แสดง badge + poll ทุก 30 วิ + refresh ตอนกลับมาโฟกัส/เปลี่ยนหน้า
+  useEffect(() => {
+    let active = true;
+    const load = () =>
+      fetch("/api/admin/payments/count")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (active && d) setPendingPayments(d.pending ?? 0);
+        })
+        .catch(() => {});
+
+    load();
+    const interval = setInterval(load, 30_000);
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("payments:updated", onFocus);
+    return () => {
+      active = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("payments:updated", onFocus);
+    };
+  }, [pathname]);
 
   const navItems = [
     { href: "/admin", icon: LayoutDashboard, label: "Overview" },
     { href: "/admin/users", icon: Users, label: "User Management" },
     { href: "/admin/roles", icon: KeyRound, label: "Role Management" },
     { href: "/admin/exchanges", icon: Building2, label: "Exchange Management" },
-    { href: "/admin/payments", icon: Wallet, label: "Payments" },
+    { href: "/admin/payments", icon: Wallet, label: "Payments", badge: pendingPayments },
     { href: "/admin/settings", icon: Zap, label: "Payment Settings" },
   ];
 
@@ -56,7 +82,12 @@ export function AdminNav() {
               `}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.badge ? (
+                <span className="min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold leading-none">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              ) : null}
             </Link>
           );
         })}
