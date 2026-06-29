@@ -63,9 +63,12 @@ export const authOptions: NextAuthOptions = {
       if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, isActive: true, plan: true, planExpiresAt: true },
+          select: { role: true, isActive: true, plan: true, planExpiresAt: true, name: true, image: true },
         });
         if (dbUser) {
+          // sync ชื่อ + รูปโปรไฟล์ล่าสุดเข้า token (เผื่อผู้ใช้เพิ่งแก้ในหน้าโปรไฟล์)
+          token.name = dbUser.name;
+          token.picture = dbUser.image ?? null;
           // ปรับ role ตามอายุแผน (จ่ายแล้ว=CUSTOMER, หมดอายุ=CUSTOMER_FREE) — ทันทีใน request นี้
           const { syncExpiredPlan } = await import("@/lib/subscription");
           const effectiveRole = await syncExpiredPlan({
@@ -91,6 +94,8 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.isActive = token.isActive as boolean;
         session.user.permissions = token.permissions;
+        session.user.name = (token.name as string | null) ?? session.user.name;
+        session.user.image = (token.picture as string | null) ?? null;
       }
       return session;
     },

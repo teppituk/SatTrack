@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -118,9 +119,20 @@ export function Nav() {
         {/* User section */}
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-              <User className="h-4 w-4 text-foreground" />
-            </div>
+            {session?.user?.image ? (
+              <Image
+                src={session.user.image}
+                alt="avatar"
+                width={32}
+                height={32}
+                unoptimized
+                className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <User className="h-4 w-4 text-foreground" />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
                 {session?.user?.name || "User"}

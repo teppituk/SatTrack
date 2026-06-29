@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { AppShell } from "@/components/nav";
-import { Settings, Share2, Zap, User, ChevronRight, Shield, Globe } from "lucide-react";
+import { Settings, Share2, Zap, User, ChevronRight, Shield, Globe, Pencil } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { HolderTierCard } from "@/components/holder-tier-card";
 
@@ -76,26 +77,44 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Profile Card */}
-        <div className="bg-card border border-border rounded-xl p-6 mb-6">
+        {/* Profile Card — กดเพื่อแก้ไขข้อมูลส่วนตัว */}
+        <Link
+          href="/settings/profile"
+          className="block bg-card border border-border rounded-xl p-6 mb-6 hover:border-blue-600 transition-colors"
+        >
           <h2 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
             <User className="h-4 w-4" />
             {t("settings.account")}
           </h2>
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center text-foreground text-xl font-bold flex-shrink-0">
-              {(session?.user?.name || session?.user?.email || "U")[0].toUpperCase()}
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">{session?.user?.name || "User"}</p>
-              <p className="text-muted-foreground text-sm">{session?.user?.email}</p>
+            {session?.user?.image ? (
+              <Image
+                src={session.user.image}
+                alt="avatar"
+                width={56}
+                height={56}
+                unoptimized
+                className="h-14 w-14 rounded-full object-cover border border-border flex-shrink-0"
+              />
+            ) : (
+              <div className="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center text-foreground text-xl font-bold flex-shrink-0">
+                {(session?.user?.name || session?.user?.email || "U")[0].toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground truncate">{session?.user?.name || "User"}</p>
+              <p className="text-muted-foreground text-sm truncate">{session?.user?.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Shield className="h-3 w-3 text-green-400" />
                 <span className="text-xs text-green-400">{t("settings.accountVerified")}</span>
               </div>
             </div>
+            <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
+              <Pencil className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" />
+            </div>
           </div>
-        </div>
+        </Link>
 
         {/* Holder Tier */}
         <HolderTierCard />

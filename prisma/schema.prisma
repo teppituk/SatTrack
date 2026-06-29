@@ -19,6 +19,7 @@ model User {
   email         String        @unique
   password      String?
   name          String?
+  image         String?
   role          String        @default("CUSTOMER_FREE")
   isActive      Boolean       @default(true)
   plan          String        @default("free")
