@@ -116,11 +116,11 @@ export async function GET(
               B
             </div>
             <div style={{ color: ORANGE, fontSize: 44, fontWeight: 800, marginLeft: 20 }}>
-              KebSats
+              KeepSats
             </div>
           </div>
           <div style={{ display: "flex", color: "#7b8190", fontSize: 26 }}>
-            kebsats
+            keepsats
           </div>
         </div>
 
@@ -192,7 +192,7 @@ export async function GET(
             ))}
           </div>
           <div style={{ display: "flex", color: "#6b7280", fontSize: 26 }}>
-            track yours at KebSats
+            track yours at KeepSats
           </div>
         </div>
       </div>

@@ -7,7 +7,7 @@
     "startFree": "เริ่มสะสมฟรี",
     "signIn": "เข้าสู่ระบบ",
     "featuresTitle": "ครบทุกฟีเจอร์ที่คุณต้องการ",
-    "feature1Title": "KebSats",
+    "feature1Title": "KeepSats",
     "feature1Desc": "บันทึกการซื้อ/ขาย BTC ได้ในไม่กี่วินาที — ระบบเติมราคา BTC ปัจจุบันให้อัตโนมัติ (แก้เองได้) กรอกมูลค่ารวมแล้วคำนวณจำนวนเหรียญให้ และแนบรูปสลิป (JPG, PNG, WebP) เก็บเป็นหลักฐานได้",
     "feature2Title": "แดชบอร์ดพอร์ตโฟลิโอ",
     "feature2Desc": "ติดตามการสะสมเป็นบาทหรือดอลลาร์ — มูลค่าปัจจุบัน ต้นทุนเฉลี่ย กำไร/ขาดทุนทั้งที่รับรู้และยังไม่รับรู้ สัดส่วน และราคา BTC ล่าสุด รีเฟรชได้ทุกเมื่อ",
@@ -20,9 +20,9 @@
     "feature6Title": "รองรับหลายเอ็กซ์เชนจ์",
     "feature6Desc": "บันทึกรายการ BTC จาก Bitkub, Binance TH และ Binance สากล รวมเป็นสแต็กเดียว",
     "ctaTitle": "พร้อมสะสมอย่างชาญฉลาดแล้วหรือยัง?",
-    "ctaSubtitle": "ร่วมกับชาว Bitcoin ไทยที่ติดตามการสะสมของพวกเขาด้วย KebSats",
+    "ctaSubtitle": "ร่วมกับชาว Bitcoin ไทยที่ติดตามการสะสมของพวกเขาด้วย KeepSats",
     "ctaButton": "สร้างบัญชีฟรี",
-    "footer": "© 2024 KebSats สงวนลิขสิทธิ์"
+    "footer": "© 2024 KeepSats สงวนลิขสิทธิ์"
   },
   "nav": {
     "dashboard": "แดชบอร์ด",
@@ -276,7 +276,7 @@
     "passwordMismatch": "รหัสผ่านไม่ตรงกัน",
     "passwordChanged": "เปลี่ยนรหัสผ่านแล้ว",
     "updatePassword": "อัปเดตรหัสผ่าน",
-    "appVersion": "KebSats v0.1.0",
+    "appVersion": "KeepSats v0.1.0",
     "builtWith": "สร้างด้วย Next.js 14, Prisma และ Claude AI"
   },
   "common": {

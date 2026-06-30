@@ -39,13 +39,13 @@ export async function generateMetadata({
   const { token } = await params;
   const data = await loadShare(token);
   if (!data || "expired" in data) {
-    return { title: "Shared Portfolio · KebSats" };
+    return { title: "Shared Portfolio · KeepSats" };
   }
   const stats = await computeStats(data.user.transactions);
   const name = data.user.name || "A Bitcoiner";
   const ret = `${stats.totalPnlPercent >= 0 ? "+" : ""}${stats.totalPnlPercent.toFixed(1)}%`;
   const title = `${name}'s Bitcoin stack · ${ret}`;
-  const description = `Tracking my Bitcoin stack with KebSats — ${ret} return. View the live portfolio.`;
+  const description = `Tracking my Bitcoin stack with KeepSats — ${ret} return. View the live portfolio.`;
   const ogImage = `${baseUrl()}/share/${token}/og`;
   return {
     title,
@@ -130,7 +130,7 @@ export default async function SharePage({
           <TrendingUp className="h-6 w-6 text-blue-500" />
           <div>
             <h1 className="font-bold">{ownerName}&apos;s Bitcoin Stack</h1>
-            <p className="text-xs text-muted-foreground">via KebSats</p>
+            <p className="text-xs text-muted-foreground">via KeepSats</p>
           </div>
         </div>
       </header>
@@ -165,7 +165,7 @@ export default async function SharePage({
           <div className="mt-5 flex justify-center">
             <ShareActions
               url={shareUrl}
-              text={`${ownerName}'s Bitcoin stack — ${totalPnlPercent >= 0 ? "+" : ""}${totalPnlPercent.toFixed(1)}% on KebSats`}
+              text={`${ownerName}'s Bitcoin stack — ${totalPnlPercent >= 0 ? "+" : ""}${totalPnlPercent.toFixed(1)}% on KeepSats`}
             />
           </div>
         </div>
@@ -323,7 +323,7 @@ export default async function SharePage({
         )}
 
         <p className="text-center text-muted-foreground text-xs">
-          Powered by <span className="text-blue-500">KebSats</span>
+          Powered by <span className="text-blue-500">KeepSats</span>
         </p>
       </main>
     </div>

@@ -1,8 +1,8 @@
-# KebSats — Bitcoin Stack Tracker
+# KeepSats — Bitcoin Stack Tracker
 
 Web application สำหรับนักสะสม Bitcoin ชาวไทย — ติดตามการสะสม BTC จากหลายเอ็กซ์เชนจ์ (Bitkub, Binance) ดูต้นทุนเฉลี่ย/กำไร-ขาดทุน แชร์พอร์ต และสมัครสมาชิกชำระผ่าน Lightning Network
 
-> เดิมชื่อ SlipFolio / StackSats — ปัจจุบันคือ **KebSats**
+> เดิมชื่อ SlipFolio → StackSats → KebSats — ปัจจุบันคือ **KeepSats**
 
 ---
 

@@ -7,10 +7,10 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "KebSats",
-    template: "%s · KebSats",
+    default: "KeepSats",
+    template: "%s · KeepSats",
   },
-  description: "KebSats — ติดตามการสะสม Bitcoin ของคุณ",
+  description: "KeepSats — ติดตามการสะสม Bitcoin ของคุณ",
   icons: {
     icon: "/icon.svg",
   },

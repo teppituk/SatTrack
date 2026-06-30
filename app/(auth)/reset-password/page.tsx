@@ -89,7 +89,7 @@ function ResetPasswordForm() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingUp className="h-8 w-8 text-blue-500" />
-            <span className="text-2xl font-bold text-foreground">KebSats</span>
+            <span className="text-2xl font-bold text-foreground">KeepSats</span>
           </div>
           <p className="text-muted-foreground">
             {token ? "Set your new password" : "Reset your password"}
