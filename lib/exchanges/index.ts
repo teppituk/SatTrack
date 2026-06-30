@@ -1,9 +1,11 @@
 import type { ExchangeConnector } from "./types";
 import { bitkubConnector } from "./bitkub";
+import { binanceConnector } from "./binance";
 
-// registry ของ connector ที่รองรับ (Phase 1: Bitkub)
+// registry ของ connector ที่รองรับ
 const CONNECTORS: Record<string, ExchangeConnector> = {
   bitkub: bitkubConnector,
+  binance: binanceConnector,
 };
 
 export function getConnector(code: string): ExchangeConnector | null {

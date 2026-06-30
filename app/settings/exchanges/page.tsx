@@ -37,7 +37,6 @@ type Data = {
 const ALL_EXCHANGES = [
   { code: "bitkub", name: "Bitkub" },
   { code: "binance", name: "Binance" },
-  { code: "binanceth", name: "Binance TH" },
 ];
 
 export default function ExchangesPage() {

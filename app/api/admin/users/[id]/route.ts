@@ -23,7 +23,12 @@ export async function PATCH(
     )
   }
 
-  const data: { role?: string; isActive?: boolean } = {}
+  const data: {
+    role?: string
+    isActive?: boolean
+    plan?: string
+    planExpiresAt?: Date | null
+  } = {}
 
   if (typeof body.role === "string") {
     const roleExists = await prisma.role.findUnique({ where: { name: body.role } })
@@ -31,6 +36,12 @@ export async function PATCH(
       return NextResponse.json({ error: `Role "${body.role}" not found` }, { status: 400 })
     }
     data.role = body.role
+    // ตั้ง role เป็น CUSTOMER_FREE → ดึง user กลับมาเป็นแผนฟรี (ปิด PRO)
+    // ไม่แตะ transaction — เมื่อ user จ่ายใหม่ ข้อมูลเดิมจะแสดงเหมือนเดิม
+    if (body.role === "CUSTOMER_FREE") {
+      data.plan = "free"
+      data.planExpiresAt = null
+    }
   }
 
   if (typeof body.isActive === "boolean") {
@@ -51,6 +62,7 @@ export async function PATCH(
       role: true,
       isActive: true,
       plan: true,
+      planExpiresAt: true,
     },
   })
 
