@@ -3,12 +3,12 @@
     "login": "Login",
     "getStarted": "Get Started",
     "heroTitle": "Track Your Bitcoin Stack",
-    "heroSubtitle": "Upload buy/sell slips from Bitkub, Binance TH, and Binance. Our AI reads each slip and tracks your Bitcoin stack, cost basis, and P&L — all in one place.",
+    "heroSubtitle": "Track your Bitcoin stack, average cost, and P&L — from Bitkub, Binance, and more, all in one place.",
     "startFree": "Start Stacking Free",
     "signIn": "Sign In",
     "featuresTitle": "Everything You Need",
     "feature1Title": "KebSats",
-    "feature1Desc": "Log a BTC buy or sell in seconds — the live BTC price is pre-filled and editable, and entering a total auto-calculates the amount. You can also attach a slip image (JPG, PNG, WebP) to keep as a record.",
+    "feature1Desc": "Log a BTC buy or sell in seconds — the live BTC price is pre-filled and editable, and entering a total auto-calculates the amount.",
     "feature2Title": "Portfolio Dashboard",
     "feature2Desc": "Track your stack in THB or USD: current value, average cost, unrealized and realized P&L, allocation, and the live BTC price — refreshable anytime.",
     "feature3Title": "Buy/Sell Chart",
@@ -75,7 +75,8 @@
     "and": "and",
     "privacyPolicy": "Privacy Policy",
     "signInToAccount": "Sign in to your account",
-    "createFreeAccount": "Create your free account"
+    "createFreeAccount": "Create your free account",
+    "mustAcceptTerms": "Please accept the Terms of Service and Privacy Policy"
   },
   "dashboard": {
     "title": "Portfolio Dashboard",

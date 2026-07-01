@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, CheckCircle, AlertCircle, ImageIcon, X, Upload, RefreshCw, FileSpreadsheet } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, X, RefreshCw, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 
 interface ExchangeOption {
@@ -44,11 +44,7 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const [exchanges, setExchanges] = useState<ExchangeOption[]>([]);
-  // รูปสลิป (optional) — เก็บไว้เป็นหลักฐานการซื้อ
-  const [slipFile, setSlipFile] = useState<File | null>(null);
-  const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   // นำเข้าข้อมูลเก่าจาก Excel (.xlsx)
   const importInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
@@ -217,36 +213,11 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
     applyPrice(livePrice[formData.currency as "THB" | "USD"]);
   };
 
-  const onSelectFile = (file: File | null) => {
-    if (!file) return;
-    const allowed = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowed.includes(file.type)) {
-      setError("รองรับเฉพาะรูป JPG, PNG, WebP");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setError("ไฟล์ใหญ่เกิน 10MB");
-      return;
-    }
-    setError("");
-    setSlipFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setSlipPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const removeFile = () => {
-    setSlipFile(null);
-    setSlipPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
   const reset = () => {
     setFormData(makeDefault());
     setRawInputs({ amount: "", price: "", totalValue: "" });
     setDone(false);
     setError("");
-    removeFile();
     setPriceEdited(false);
     priceEditedRef.current = false;
     currencyRef.current = "THB";
@@ -306,20 +277,6 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
     setError("");
 
     try {
-      // อัปโหลดรูปสลิปก่อน (ถ้ามี) เพื่อเก็บเป็นหลักฐาน
-      let slipImageUrl: string | null = null;
-      if (slipFile) {
-        const fd = new FormData();
-        fd.append("file", slipFile);
-        const up = await fetch("/api/upload", { method: "POST", body: fd });
-        if (!up.ok) {
-          const e = await up.json().catch(() => ({}));
-          throw new Error(e.error || "อัปโหลดรูปสลิปไม่สำเร็จ");
-        }
-        const d = await up.json();
-        slipImageUrl = d.imageUrl ?? null;
-      }
-
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -327,7 +284,6 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
           ...formData,
           coinSymbol: "BTC",
           assetType: "CRYPTO",
-          slipImageUrl,
         }),
       });
 
@@ -421,12 +377,6 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
                 <span className="text-muted-foreground">วันที่</span>
                 <span className="text-foreground">
                   {format(new Date(formData.txDate), "dd/MM/yyyy HH:mm")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">รูปสลิป</span>
-                <span className={slipFile ? "text-green-400" : "text-muted-foreground"}>
-                  {slipFile ? "แนบแล้ว" : "ไม่แนบ"}
                 </span>
               </div>
             </div>
@@ -661,54 +611,6 @@ export function SlipUploadForm({ onSuccess }: SlipUploadFormProps) {
             className="w-full bg-muted border border-border text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-      </div>
-
-      {/* รูปสลิป (optional) */}
-      <div>
-        <label className="block text-xs text-muted-foreground mb-1">
-          รูปสลิป <span className="text-muted-foreground">(ไม่บังคับ — เก็บไว้เป็นหลักฐานการซื้อ)</span>
-        </label>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={(e) => onSelectFile(e.target.files?.[0] ?? null)}
-          className="hidden"
-        />
-        {slipPreview ? (
-          <div className="flex items-center gap-3 bg-muted border border-border rounded-xl p-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={slipPreview}
-              alt="Slip preview"
-              className="h-16 w-16 object-cover rounded-lg border border-border"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-foreground truncate">{slipFile?.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {slipFile ? `${(slipFile.size / 1024).toFixed(0)} KB` : ""}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={removeFile}
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-950/30 transition-colors"
-              title="ลบรูป"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-border hover:bg-muted/30 text-muted-foreground rounded-xl py-4 transition-colors"
-          >
-            <Upload className="h-4 w-4" />
-            <span className="text-sm">แนบรูปสลิป (JPG, PNG, WebP — สูงสุด 10MB)</span>
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
-          </button>
-        )}
       </div>
 
       {error && (

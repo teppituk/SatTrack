@@ -267,7 +267,7 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
       <div className="text-center py-12 text-muted-foreground">
         <TrendingUp className="h-10 w-10 mx-auto mb-3 opacity-30" />
         <p>No transactions yet</p>
-        <p className="text-sm mt-1">Upload your first slip to get started</p>
+        <p className="text-sm mt-1">Stack your first Bitcoin to get started</p>
       </div>
     );
   }

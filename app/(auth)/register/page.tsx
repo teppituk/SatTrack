@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const validatePassword = (pwd: string) => {
     if (pwd.length < 8) return "Password must be at least 8 characters";
@@ -31,6 +32,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+
+    if (!agreed) {
+      setError(t("auth.mustAcceptTerms"));
+      setIsLoading(false);
+      return;
+    }
 
     const pwdError = validatePassword(password);
     if (pwdError) {
@@ -182,16 +189,38 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground">
-              {t("auth.termsAgreement")}{" "}
-              <span className="text-blue-400 cursor-pointer hover:underline">{t("auth.termsOfService")}</span>{" "}
-              {t("auth.and")}{" "}
-              <span className="text-blue-400 cursor-pointer hover:underline">{t("auth.privacyPolicy")}</span>.
-            </p>
+            <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-border accent-blue-600"
+              />
+              <span>
+                {t("auth.termsAgreement")}{" "}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline"
+                >
+                  {t("auth.termsOfService")}
+                </Link>{" "}
+                {t("auth.and")}{" "}
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline"
+                >
+                  {t("auth.privacyPolicy")}
+                </Link>
+              </span>
+            </label>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !agreed}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-foreground py-3 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (

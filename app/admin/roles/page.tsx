@@ -23,7 +23,7 @@ interface Role {
 
 const MENU_ITEMS: { key: keyof RolePermissions; label: string }[] = [
   { key: "dashboard", label: "Dashboard" },
-  { key: "upload", label: "Upload Slip" },
+  { key: "upload", label: "Stack Bitcoin" },
   { key: "chart", label: "Chart" },
   { key: "share", label: "Share Portfolio" },
   { key: "subscription", label: "Subscription" },
