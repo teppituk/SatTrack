@@ -1,4 +1,4 @@
-# Deploy KeepSats to AWS (EC2 + Docker Compose)
+# Deploy KebSats to AWS (EC2 + Docker Compose)
 
 Target architecture for the first deployment:
 

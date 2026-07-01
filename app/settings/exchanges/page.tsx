@@ -36,6 +36,7 @@ type Data = {
 
 const ALL_EXCHANGES = [
   { code: "bitkub", name: "Bitkub" },
+  { code: "binanceth", name: "Binance TH" },
   { code: "binance", name: "Binance" },
 ];
 

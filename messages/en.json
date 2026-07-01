@@ -7,7 +7,7 @@
     "startFree": "Start Stacking Free",
     "signIn": "Sign In",
     "featuresTitle": "Everything You Need",
-    "feature1Title": "KeepSats",
+    "feature1Title": "KebSats",
     "feature1Desc": "Log a BTC buy or sell in seconds — the live BTC price is pre-filled and editable, and entering a total auto-calculates the amount. You can also attach a slip image (JPG, PNG, WebP) to keep as a record.",
     "feature2Title": "Portfolio Dashboard",
     "feature2Desc": "Track your stack in THB or USD: current value, average cost, unrealized and realized P&L, allocation, and the live BTC price — refreshable anytime.",
@@ -20,9 +20,9 @@
     "feature6Title": "Multi-Exchange",
     "feature6Desc": "Log BTC trades from Bitkub, Binance TH, and Binance International — all unified into a single stack.",
     "ctaTitle": "Ready to stack smarter?",
-    "ctaSubtitle": "Join Thai Bitcoiners who track their stack with KeepSats.",
+    "ctaSubtitle": "Join Thai Bitcoiners who track their stack with KebSats.",
     "ctaButton": "Create Free Account",
-    "footer": "© 2024 KeepSats. All rights reserved."
+    "footer": "© 2024 KebSats. All rights reserved."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -276,7 +276,7 @@
     "passwordMismatch": "Passwords do not match",
     "passwordChanged": "Password changed",
     "updatePassword": "Update password",
-    "appVersion": "KeepSats v0.1.0",
+    "appVersion": "KebSats v0.1.0",
     "builtWith": "Built with Next.js 14, Prisma, and Claude AI"
   },
   "common": {
