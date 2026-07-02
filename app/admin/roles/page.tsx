@@ -7,6 +7,7 @@ interface RolePermissions {
   dashboard: boolean;
   upload: boolean;
   chart: boolean;
+  exchanges: boolean;
   share: boolean;
   subscription: boolean;
   settings: boolean;
@@ -25,6 +26,7 @@ const MENU_ITEMS: { key: keyof RolePermissions; label: string }[] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "upload", label: "Stack Bitcoin" },
   { key: "chart", label: "Chart" },
+  { key: "exchanges", label: "Connect Exchange" },
   { key: "share", label: "Share Portfolio" },
   { key: "subscription", label: "Subscription" },
   { key: "settings", label: "Settings" },
@@ -34,6 +36,7 @@ const DEFAULT_PERMISSIONS: RolePermissions = {
   dashboard: true,
   upload: true,
   chart: true,
+  exchanges: true,
   share: true,
   subscription: true,
   settings: true,

@@ -19,6 +19,7 @@ import {
   User,
   Shield,
   FileText,
+  Building2,
 } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -40,6 +41,7 @@ export function Nav() {
     { href: "/dashboard", icon: LayoutDashboard, label: t("nav.dashboard"), key: "dashboard" },
     { href: "/upload", icon: Bitcoin, label: t("nav.upload"), key: "upload" },
     { href: "/chart", icon: BarChart2, label: t("nav.chart"), key: "chart" },
+    { href: "/exchanges", icon: Building2, label: t("exchanges.title"), key: "exchanges" },
     { href: "/settings/share", icon: Share2, label: t("nav.share"), key: "share" },
     { href: "/settings/subscription", icon: Zap, label: t("nav.subscription"), key: "subscription" },
     { href: "/settings", icon: Settings, label: t("nav.settings"), key: "settings" },

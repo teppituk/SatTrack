@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { AppShell } from "@/components/nav";
-import { Settings, Share2, Zap, User, ChevronRight, Shield, Globe, Pencil, Building2 } from "lucide-react";
+import { Settings, Share2, Zap, User, ChevronRight, Shield, Globe, Pencil } from "lucide-react";
 import { useLocale } from "@/contexts/locale-context";
 import { HolderTierCard } from "@/components/holder-tier-card";
 
@@ -60,14 +60,6 @@ export default function SettingsPage() {
       desc: t("settings.shareLinksDesc"),
       badge: null,
       badgeColor: "",
-    },
-    {
-      href: "/settings/exchanges",
-      icon: <Building2 className="h-5 w-5 text-orange-400" />,
-      title: t("exchanges.title"),
-      desc: t("exchanges.subtitle"),
-      badge: "PRO",
-      badgeColor: "bg-yellow-500/20 text-yellow-400",
     },
   ];
 

@@ -4,6 +4,7 @@ export interface RolePermissions {
   dashboard: boolean;
   upload: boolean;
   chart: boolean;
+  exchanges: boolean;
   share: boolean;
   subscription: boolean;
   settings: boolean;

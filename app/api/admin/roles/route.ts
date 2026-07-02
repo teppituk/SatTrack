@@ -7,6 +7,7 @@ const DEFAULT_PERMISSIONS = {
   dashboard: true,
   upload: true,
   chart: true,
+  exchanges: true,
   share: true,
   subscription: true,
   settings: true,

@@ -7,7 +7,6 @@ import Link from "next/link";
 import { AppShell } from "@/components/nav";
 import { useLocale } from "@/contexts/locale-context";
 import {
-  ArrowLeft,
   Building2,
   Loader2,
   Trash2,
@@ -146,11 +145,6 @@ export default function ExchangesPage() {
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto">
-        <Link href="/settings" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="h-4 w-4" />
-          {t("settings.backToSettings")}
-        </Link>
-
         <div className="flex items-center gap-3 mb-6">
           <div className="h-10 w-10 bg-muted rounded-xl flex items-center justify-center">
             <Building2 className="h-5 w-5 text-muted-foreground" />
